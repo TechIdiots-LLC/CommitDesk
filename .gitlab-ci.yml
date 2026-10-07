@@ -289,7 +289,6 @@ publish-play:
     PLAY_TRACK: "internal"           # internal, alpha (closed testing), beta (open testing) or production
     PLAY_RELEASE_STATUS: "completed" # or "draft" to review and roll out in Play Console
   script:
-    - if ([string]::IsNullOrWhiteSpace($env:PLAY_SERVICE_ACCOUNT_JSON_BASE64)) { throw 'PLAY_SERVICE_ACCOUNT_JSON_BASE64 is not set (Settings > CI/CD > Variables, environment scope signing/main).' }
     - if ([string]::IsNullOrWhiteSpace($env:ANDROID_KEYSTORE_BASE64)) { throw 'ANDROID_KEYSTORE_BASE64 is not set; Play bundles must be signed with the upload key.' }
     - $keystore = Join-Path ([IO.Path]::GetTempPath()) "gitlabdesktop-play-$env:CI_JOB_ID.keystore"
     - '[IO.File]::WriteAllBytes($keystore, [Convert]::FromBase64String($env:ANDROID_KEYSTORE_BASE64))'
@@ -307,6 +306,8 @@ publish-play:
     - if (-not $aab) { throw 'No .aab found under ./publish/play' }
     - New-Item -ItemType Directory play-files -Force | Out-Null
     - Copy-Item $aab.FullName "./play-files/GitLabDesktop-v$env:RELEASE_VERSION.aab"
+    # Without the Play key the bundle is still built and kept, for the first release (uploaded by hand in Play Console)
+    - if ([string]::IsNullOrWhiteSpace($env:PLAY_SERVICE_ACCOUNT_JSON_BASE64)) { Write-Warning 'PLAY_SERVICE_ACCOUNT_JSON_BASE64 is not set, so nothing was uploaded to Google Play. Download the .aab from this job''s artifacts to upload it in Play Console.'; exit 0 }
     - python -m pip install --quiet --disable-pip-version-check google-api-python-client google-auth
     - python build/publish-play.py --aab "./play-files/GitLabDesktop-v$env:RELEASE_VERSION.aab" --version $env:RELEASE_VERSION --track $env:PLAY_TRACK --status $env:PLAY_RELEASE_STATUS
   after_script:

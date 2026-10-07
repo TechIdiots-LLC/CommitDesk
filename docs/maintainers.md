@@ -131,9 +131,10 @@ features don't work. Keep it on the internal testing track, which isn't reviewed
 **Setting up Play (once):**
 
 1. In Play Console, create the app, with the package name `net.techidiots.gitlabdesktop`.
-2. Upload the first bundle by hand: run the publish-play job once (the upload step fails, since Google only accepts API
-   uploads for an app that already has a bundle), download the `.aab` from the job's artifacts, and upload it in
-   Play Console › Testing › Internal testing › Create new release. This also sets up Play App Signing, with the
+2. Upload the first bundle by hand (Google only accepts API uploads for an app that already has one): run the
+   publish-play job before setting up the Play key below. Without the key it builds and signs the bundle, skips the
+   upload with a warning, and still succeeds. Download the `.aab` from the job's artifacts (GitHub: the
+   `play-bundle` artifact) and upload it in Play Console › Testing › Internal testing › Create new release. This also sets up Play App Signing, with the
    release keystore as the upload key. Keep that keystore safe: every later upload must be signed with it.
 3. In Google Cloud, create a service account (no roles needed in Cloud), create a JSON key for it, and enable the
    Google Play Android Developer API for the project.

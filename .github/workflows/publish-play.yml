@@ -2,8 +2,9 @@ name: Publish to Google Play
 
 # Run by hand (Actions › Publish to Google Play › Run workflow) after a release: builds an Android App Bundle signed
 # with the release keystore (Play's upload key) and releases it on the chosen track. Same job as GitLab's publish-play.
-# Manual only: nothing reaches Google Play unless someone starts it. Needs the PLAY_SERVICE_ACCOUNT_JSON secret (the key
-# file's JSON as is) and the ANDROID_KEYSTORE_* secrets in the "release" environment; see docs/maintainers.md.
+# Manual only: nothing reaches Google Play unless someone starts it. Uploads with the PLAY_SERVICE_ACCOUNT_JSON secret (the key
+# file's JSON as is); without it the signed bundle is only kept as an artifact, for a first upload by hand. Needs the
+# ANDROID_KEYSTORE_* secrets in the "release" environment; see docs/maintainers.md.
 on:
   workflow_dispatch:
     inputs:
@@ -27,6 +28,9 @@ jobs:
     name: Publish to Google Play
     runs-on: windows-latest
     environment: release
+    env:
+      # Without it the bundle is still built and kept, for the first release (uploaded by hand in Play Console)
+      PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
     steps:
       - uses: actions/checkout@v7
 
@@ -95,9 +99,12 @@ jobs:
           path: play-files/
           retention-days: 30
 
+      - name: No Play key, so no upload
+        if: env.PLAY_SERVICE_ACCOUNT_JSON == ''
+        run: echo "::warning::PLAY_SERVICE_ACCOUNT_JSON is not set, so nothing was uploaded to Google Play. Download the play-bundle artifact to upload the .aab in Play Console."
+
       - name: Upload to Google Play
-        env:
-          PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+        if: env.PLAY_SERVICE_ACCOUNT_JSON != ''
         run: |
           python -m pip install --quiet --disable-pip-version-check google-api-python-client google-auth
           python build/publish-play.py --aab "play-files/GitLabDesktop-v${{ steps.version.outputs.version }}.aab" --version "${{ steps.version.outputs.version }}" --track "${{ inputs.track }}" --status "${{ inputs.status }}"
