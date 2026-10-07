@@ -39,6 +39,7 @@ public static class MauiProgram
         });
         services.AddSingleton<HostingRegistry>();
         services.AddSingleton<GitSignInService>();
+        services.AddSingleton<CertificateTrustService>();
         services.AddSingleton<AppUpdater>();
         services.AddSingleton<DialogService>();
         services.AddSingleton<PlatformActions>();

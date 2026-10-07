@@ -19,6 +19,7 @@ public sealed partial class MainViewModel : ObservableObject
     readonly GitRunner _git;
     readonly HostingRegistry _hosting;
     readonly GitSignInService _signIn;
+    readonly CertificateTrustService _certificates;
     readonly DialogService _dialogs;
     readonly PlatformActions _platform;
     readonly IServiceProvider _services;
@@ -28,13 +29,14 @@ public sealed partial class MainViewModel : ObservableObject
     DateTimeOffset? _lastFetched;
     string? _defaultBranch;
 
-    public MainViewModel(AppSettings settings, GitRunner git, HostingRegistry hosting, GitSignInService signIn, DialogService dialogs,
-        PlatformActions platform, IServiceProvider services)
+    public MainViewModel(AppSettings settings, GitRunner git, HostingRegistry hosting, GitSignInService signIn, CertificateTrustService certificates,
+        DialogService dialogs, PlatformActions platform, IServiceProvider services)
     {
         _settings = settings;
         _git = git;
         _hosting = hosting;
         _signIn = signIn;
+        _certificates = certificates;
         _dialogs = dialogs;
         _platform = platform;
         _services = services;
@@ -411,6 +413,13 @@ public sealed partial class MainViewModel : ObservableObject
                     if (outcome == SignInOutcome.Cancelled) break;
                     if (outcome == SignInOutcome.NotApplicable) throw;
                     signedIn = true;
+                    BusyText = busyText;
+                }
+                catch (GitException ex) when (CertificateTrustService.IsCertificateProblem(ex) && Repo is { } repo)
+                {
+                    // An internal CA or a self-signed server: offer the Windows store, or skipping this server's check
+                    BusyText = "Waiting for a certificate decision…";
+                    if (!await _certificates.PromptAsync(await repo.GetRemoteUrlAsync(RemoteName), ex.Message)) break;
                     BusyText = busyText;
                 }
             }

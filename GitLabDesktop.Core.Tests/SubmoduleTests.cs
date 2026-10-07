@@ -10,7 +10,7 @@ public class GlobalGitConfig;
 public class SubmoduleTests
 {
     /// <summary>Points git's global and system config at temporary files (inherited by the git processes it runs).</summary>
-    static async Task WithTemporaryConfigAsync(string systemConfig, Func<string, Task> test)
+    internal static async Task WithTemporaryConfigAsync(string systemConfig, Func<string, Task> test)
     {
         var global = Path.Combine(Path.GetTempPath(), "gld-global-" + Guid.NewGuid().ToString("N")[..8]);
         var system = Path.Combine(Path.GetTempPath(), "gld-system-" + Guid.NewGuid().ToString("N")[..8]);

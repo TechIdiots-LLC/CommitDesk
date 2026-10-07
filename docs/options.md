@@ -18,6 +18,16 @@ GitLab, GitHub and other git server sign-ins. See [Accounts and signing in](acco
 | **Include submodules** | The default for **Include submodules** in the clone dialog. It is git's own `submodule.recurse` setting (in your global git config), so switching branches and pulling also update submodules, in the app and in git on the command line. Off unless you've turned it on. |
 | **Support long file paths** (Windows) | Lets git clone and check out repositories with paths longer than Windows' usual 260 characters. It is git's `core.longpaths` setting. Git for Windows often turns it on for everyone in its own (system) config; the box shows what git actually uses, and turning it off writes `false` to your global config when that's needed to override the system one. |
 
+## Certificates
+
+| Setting | |
+| --- | --- |
+| **Use the Windows certificate store** (Windows) | Git checks HTTPS servers against the certificate authorities Windows trusts, like your browser, including an organisation's own authority that its domain or IT department added. Without it, Git for Windows uses OpenSSL with its own list of public authorities, so an internal server fails with *SSL certificate problem: self-signed certificate in certificate chain* even when the browser accepts it. It is git's `http.sslBackend` setting (`schannel`); the box shows what git actually uses, including the choice Git for Windows' installer made in its system config. |
+| **Servers whose certificates aren't checked** | For a server you trust that has a truly self-signed certificate. Type its name and choose **Don't check this server…**; **Check again** removes it. Each is git's `http.<url>.sslVerify false` for that server only, so other servers, including GitHub, are still checked. Without the check, someone between you and the server could pretend to be it and see your sign-in and code, so prefer the Windows certificate store when it works. |
+
+When git refuses a certificate while cloning, fetching, pulling or pushing, the app offers the same two choices and
+tries again.
+
 ## Links from GitHub (Windows)
 
 GitHub's **Code › Open with GitHub Desktop** button opens a repository in your desktop git app. GitLab Desktop can open

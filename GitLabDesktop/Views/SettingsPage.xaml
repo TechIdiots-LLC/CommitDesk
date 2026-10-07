@@ -108,6 +108,37 @@
                     </VerticalStackLayout>
                 </Grid>
 
+                <!-- Certificates: the Windows store for internal CAs, and per-server opt-outs for self-signed servers -->
+                <Label Text="Certificates" Style="{StaticResource SectionHeader}" Margin="0,8,0,0" />
+                <Grid ColumnDefinitions="Auto,*" IsVisible="{Binding ShowCertificateStore}">
+                    <CheckBox IsChecked="{Binding UseWindowsCertificateStore}" VerticalOptions="Start" />
+                    <VerticalStackLayout Grid.Column="1" VerticalOptions="Center">
+                        <Label Text="Use the Windows certificate store" />
+                        <Label Style="{StaticResource SecondaryText}"
+                               Text="Git checks HTTPS servers against the certificate authorities Windows trusts, like your browser does, including your organisation's own. Without it, Git for Windows uses its own list, and servers with an internal certificate fail with &quot;self-signed certificate in certificate chain&quot;. This is git's http.sslBackend setting (schannel), so git on the command line follows it too." />
+                    </VerticalStackLayout>
+                </Grid>
+                <Label Text="Servers whose certificates aren't checked" Margin="0,4,0,0" />
+                <Label Style="{StaticResource SecondaryText}"
+                       Text="For a server you trust with a self-signed certificate. Without the check, someone between you and the server could pretend to be it and see your sign-in and code, so add only servers you know, and prefer the option above when it works. Each applies to that server only (git's http.&lt;url&gt;.sslVerify setting)." />
+                <VerticalStackLayout Spacing="4" BindableLayout.ItemsSource="{Binding UntrustedServers}">
+                    <BindableLayout.ItemTemplate>
+                        <DataTemplate x:DataType="x:String">
+                            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                                <Label Text="{Binding .}" VerticalOptions="Center" />
+                                <Button Grid.Column="1" Text="Check again" Style="{StaticResource SecondaryButton}"
+                                        Command="{Binding RemoveUntrustedServerCommand, Source={RelativeSource AncestorType={x:Type vm:SettingsViewModel}}, x:DataType=vm:SettingsViewModel}"
+                                        CommandParameter="{Binding .}" />
+                            </Grid>
+                        </DataTemplate>
+                    </BindableLayout.ItemTemplate>
+                </VerticalStackLayout>
+                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                    <Entry Text="{Binding NewUntrustedServer}" Placeholder="git.example.com" />
+                    <Button Grid.Column="1" Text="Don't check this server…" Command="{Binding AddUntrustedServerCommand}"
+                            Style="{StaticResource SecondaryButton}" />
+                </Grid>
+
                 <!-- GitHub's "Open with GitHub Desktop" links (Windows): never taken over without the user choosing -->
                 <VerticalStackLayout Spacing="8" IsVisible="{Binding ShowLinkHandler}">
                     <BoxView Style="{StaticResource Separator}" Margin="0,8" />

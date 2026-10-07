@@ -17,9 +17,12 @@ public sealed partial class SettingsViewModel : ModalViewModel<bool>
     bool? _savedRecurseSubmodules, _savedLongPaths;
 
     readonly LinkHandlerRegistration _links;
+    readonly DialogService _dialogs;
 
-    public SettingsViewModel(AppSettings settings, HostingRegistry hosting, GitRunner git, LinkHandlerRegistration links)
+    public SettingsViewModel(AppSettings settings, HostingRegistry hosting, GitRunner git, LinkHandlerRegistration links,
+        DialogService dialogs)
     {
+        _dialogs = dialogs;
         _links = links;
         UpdateLinkHandlerStatus();
         _settings = settings;
@@ -37,6 +40,7 @@ public sealed partial class SettingsViewModel : ModalViewModel<bool>
         _editorCommand = settings.EditorCommand;
         _gitExecutable = settings.GitExecutable;
         Accounts.CollectionChanged += (_, _) => OnPropertyChanged(nameof(CanAddGitHub));
+        UntrustedServers.CollectionChanged += (_, _) => OnPropertyChanged(nameof(HasUntrustedServers));
     }
 
     protected override bool CancelledResult => false;
@@ -62,6 +66,45 @@ public sealed partial class SettingsViewModel : ModalViewModel<bool>
 
     public bool ShowLongPaths => OperatingSystem.IsWindows();
 
+    /// <summary>
+    /// git's http.sslBackend schannel: check HTTPS certificates against the Windows certificate store, which trusts the
+    /// certificate authorities Windows does (including a company's own, added by its domain), instead of Git for
+    /// Windows' own OpenSSL list.
+    /// </summary>
+    [ObservableProperty] private bool _useWindowsCertificateStore;
+    bool? _savedUseWindowsCertificateStore;
+
+    public bool ShowCertificateStore => OperatingSystem.IsWindows();
+
+    /// <summary>Servers whose certificates git doesn't check (http.&lt;url&gt;.sslVerify false), changed when saved.</summary>
+    public ObservableCollection<string> UntrustedServers { get; } = [];
+    List<string>? _savedUntrustedServers;
+
+    [ObservableProperty] private string? _newUntrustedServer;
+
+    public bool HasUntrustedServers => UntrustedServers.Count > 0;
+
+    [RelayCommand]
+    async Task AddUntrustedServer()
+    {
+        if (GitCertificates.ServerKey(NewUntrustedServer) is not { } server)
+        {
+            Error = "Enter a server name or HTTPS address, such as git.example.com.";
+            return;
+        }
+        Error = null;
+        NewUntrustedServer = null;
+        if (UntrustedServers.Contains(server, StringComparer.OrdinalIgnoreCase)) return;
+        if (await _dialogs.ConfirmAsync("Turn off certificate checking",
+                $"Stop checking the certificate of {server}? Only do this for a server you trust, such as your own with a " +
+                "self-signed certificate: without the check, someone between you and the server could pretend to be it and " +
+                "see your sign-in and code.", "Don't check it"))
+            UntrustedServers.Add(server);
+    }
+
+    [RelayCommand]
+    void RemoveUntrustedServer(string server) => UntrustedServers.Remove(server);
+
     async Task LoadGitDefaultsAsync()
     {
         RecurseSubmodules = await GitRepository.GetDefaultBoolAsync(_git, "submodule.recurse") ?? false;
@@ -71,6 +114,13 @@ public sealed partial class SettingsViewModel : ModalViewModel<bool>
             LongPaths = await GitRepository.GetDefaultBoolAsync(_git, "core.longpaths") ?? false;
             _savedLongPaths = LongPaths;
         }
+        if (ShowCertificateStore)
+        {
+            UseWindowsCertificateStore = await GitCertificates.UsesWindowsCertificateStoreAsync(_git);
+            _savedUseWindowsCertificateStore = UseWindowsCertificateStore;
+        }
+        _savedUntrustedServers = [.. await GitCertificates.GetUntrustedServersAsync(_git)];
+        foreach (var server in _savedUntrustedServers) UntrustedServers.Add(server);
     }
 
     [ObservableProperty] private string _gitExecutable;
@@ -275,6 +325,21 @@ public sealed partial class SettingsViewModel : ModalViewModel<bool>
                 Error = $"Could not change git's {key} setting: {ex.Message}";
                 return;
             }
+        }
+        try
+        {
+            if (_savedUseWindowsCertificateStore is { } before && before != UseWindowsCertificateStore)
+                await GitCertificates.SetUseWindowsCertificateStoreAsync(_git, UseWindowsCertificateStore);
+            if (_savedUntrustedServers is { } saved)
+            {
+                foreach (var server in saved.Except(UntrustedServers)) await GitCertificates.RemoveUntrustedServerAsync(_git, server);
+                foreach (var server in UntrustedServers.Except(saved)) await GitCertificates.AddUntrustedServerAsync(_git, server);
+            }
+        }
+        catch (Exception ex)
+        {
+            Error = $"Could not change git's certificate settings: {ex.Message}";
+            return;
         }
         Complete(true);
     }

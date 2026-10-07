@@ -15,6 +15,7 @@ the first place to look when something fails, and safe to share: passwords and t
 | GitLab: *You are not allowed to push* | Your role in the project (for example Reporter) or a protected branch doesn't allow pushing. Check with a project maintainer. |
 | One repository needs a different user | Sign in again for that repository and choose **Only this repository**. See [When git asks you to sign in](accounts.md#when-git-asks-you-to-sign-in). |
 | SSH remotes fail | The app uses your normal SSH setup. Check that `ssh -T git@server` works in a terminal and that your key is loaded in the agent. |
+| *SSL certificate problem: self-signed certificate in certificate chain* or *unable to get local issuer certificate* | The server's certificate comes from an authority git doesn't know, usually your organisation's own. On Windows, turn on **Use the Windows certificate store** in [Options › Certificates](options.md#certificates) (the app offers it when this happens). For a server with a truly self-signed certificate, add it to the servers whose certificates aren't checked. |
 | Merge/pull requests or CI don't show | They need a GitLab or GitHub account with an access token for that server (Options › Accounts › **Test connection**). Other git servers don't have them. |
 
 ## Update problems

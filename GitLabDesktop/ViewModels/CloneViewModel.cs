@@ -19,14 +19,16 @@ public sealed partial class CloneViewModel : ModalViewModel<string?>
     readonly AppSettings _settings;
     readonly GitRunner _git;
     readonly GitSignInService _signIn;
+    readonly CertificateTrustService _certificates;
     CancellationTokenSource? _searchCts;
     CancellationTokenSource? _cloneCts;
 
-    public CloneViewModel(AppSettings settings, HostingRegistry hosting, GitRunner git, GitSignInService signIn)
+    public CloneViewModel(AppSettings settings, HostingRegistry hosting, GitRunner git, GitSignInService signIn, CertificateTrustService certificates)
     {
         _settings = settings;
         _git = git;
         _signIn = signIn;
+        _certificates = certificates;
         _baseDirectory = settings.RepositoriesDirectory;
         _useSsh = settings.CloneWithSsh;
         foreach (var (account, service) in hosting.Services.Where(s => s.Service.IsConfigured))
@@ -171,6 +173,11 @@ public sealed partial class CloneViewModel : ModalViewModel<string?>
                     var outcome = await _signIn.PromptAsync(Url.Trim(), ex.Message);
                     if (outcome == SignInOutcome.Cancelled) return;
                     if (outcome == SignInOutcome.NotApplicable) throw;
+                }
+                catch (GitException ex) when (CertificateTrustService.IsCertificateProblem(ex))
+                {
+                    // An internal CA or a self-signed server: offer the Windows store, or skipping this server's check
+                    if (!await _certificates.PromptAsync(Url.Trim(), ex.Message)) throw;
                 }
             }
             _settings.CloneWithSsh = UseSsh;
