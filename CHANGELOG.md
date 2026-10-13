@@ -9,6 +9,7 @@
 
 ### 🐞 Bug fixes
 - _...Add new stuff here..._
+- Clicking on the word "Changes" (or its count) in the Changes tab did nothing; only the space around it switched tabs.
 - In History, the first file of a commit sometimes showed no diff (until another file was picked and then it again), when the previous commit's selected file had the same name and kind of change.
 
 ## 0.5.1

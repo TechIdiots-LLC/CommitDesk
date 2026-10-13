@@ -276,22 +276,22 @@
                   BackgroundColor="{AppThemeBinding Light={StaticResource PaneLight}, Dark={StaticResource PaneDark}}">
 
                 <Grid ColumnDefinitions="*,*">
-                    <Grid>
-                        <!-- The button handles clicks; the label and count are drawn over it so the count sits next to the text. -->
-                        <Button Style="{StaticResource TabButton}" Command="{Binding ShowChangesCommand}" SemanticProperties.Description="Changes" />
-                        <HorizontalStackLayout HorizontalOptions="Center" VerticalOptions="Center" Spacing="6" InputTransparent="True">
-                            <Label Text="Changes" FontAttributes="Bold" VerticalOptions="Center"
-                                   TextColor="{AppThemeBinding Light={StaticResource Black}, Dark={StaticResource White}}" />
-                            <Border Style="{StaticResource Badge}" IsVisible="{Binding HasChanges}"
-                                    BackgroundColor="{AppThemeBinding Light={StaticResource BorderLight}, Dark={StaticResource BorderDark}}">
-                                <Label Text="{Binding ChangedFilesCount}" FontSize="11" FontAttributes="Bold" />
-                            </Border>
-                        </HorizontalStackLayout>
-                        <BoxView HeightRequest="3" VerticalOptions="End" Color="{StaticResource GitLabOrange}" IsVisible="{Binding IsChangesTab}" />
+                    <Grid ColumnDefinitions="*,Auto,Auto,*" ColumnSpacing="6">
+                        <!-- The button handles clicks; the label and count are drawn over it so the count sits next to the text.
+                             Each is InputTransparent itself, with no layout around them: on Windows an InputTransparent
+                             layout still caught clicks on the text, so clicking "Changes" did nothing. -->
+                        <Button Grid.ColumnSpan="4" Style="{StaticResource TabButton}" Command="{Binding ShowChangesCommand}" SemanticProperties.Description="Changes" />
+                        <Label Grid.Column="1" Text="Changes" FontAttributes="Bold" VerticalOptions="Center" InputTransparent="True"
+                               TextColor="{AppThemeBinding Light={StaticResource Black}, Dark={StaticResource White}}" />
+                        <Border Grid.Column="2" Style="{StaticResource Badge}" IsVisible="{Binding HasChanges}" InputTransparent="True"
+                                BackgroundColor="{AppThemeBinding Light={StaticResource BorderLight}, Dark={StaticResource BorderDark}}">
+                            <Label Text="{Binding ChangedFilesCount}" FontSize="11" FontAttributes="Bold" InputTransparent="True" />
+                        </Border>
+                        <BoxView Grid.ColumnSpan="4" HeightRequest="3" VerticalOptions="End" Color="{StaticResource GitLabOrange}" IsVisible="{Binding IsChangesTab}" InputTransparent="True" />
                     </Grid>
                     <Grid Grid.Column="1">
                         <Button Text="History" Style="{StaticResource TabButton}" Command="{Binding ShowHistoryCommand}" />
-                        <BoxView HeightRequest="3" VerticalOptions="End" Color="{StaticResource GitLabOrange}" IsVisible="{Binding IsHistoryTab}" />
+                        <BoxView HeightRequest="3" VerticalOptions="End" Color="{StaticResource GitLabOrange}" IsVisible="{Binding IsHistoryTab}" InputTransparent="True" />
                     </Grid>
                 </Grid>
                 <BoxView Grid.Row="1" Style="{StaticResource Separator}" />
