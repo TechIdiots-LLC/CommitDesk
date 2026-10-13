@@ -7,6 +7,10 @@
 ### 🐞 Bug fixes
 - _...Add new stuff here..._
 
+## 0.6.0
+### ✨ Features and improvements
+- add macos ci
+
 ## 0.5.3
 ### ✨ Features and improvements
 
