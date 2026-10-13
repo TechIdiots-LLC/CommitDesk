@@ -22,8 +22,8 @@
 
     <ApplicationTitle>GitLab Desktop</ApplicationTitle>
     <ApplicationId>net.techidiots.gitlabdesktop</ApplicationId>
-    <ApplicationDisplayVersion>0.6.0</ApplicationDisplayVersion>
-    <ApplicationVersion>19</ApplicationVersion>
+    <ApplicationDisplayVersion>0.6.1</ApplicationDisplayVersion>
+    <ApplicationVersion>20</ApplicationVersion>
 
     <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">26.0</SupportedOSPlatformVersion>
     <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios'">15.0</SupportedOSPlatformVersion>
