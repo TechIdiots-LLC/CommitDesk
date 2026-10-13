@@ -164,15 +164,20 @@ ci-android:
     expire_in: 7 days
 
 # The .NET SDK band and workload set the macOS builds use, as in the GitHub workflows: 10.0.401.1 moved the Apple SDKs
-# to 27.0, which require Xcode 27 (and so macOS 26). 10.0.401 builds with Xcode 26, which also runs on macOS 15
-# (Sequoia) and Intel Macs. The global.json is written by the job only, so Windows builds and local builds are not
-# affected. Raise both together once the runner has a stable Xcode 27; the workload set must match the SDK band.
+# to 27.0, which require Xcode 27. 10.0.401 builds for the Mac Catalyst 26.0 SDK with Xcode 26. Raise both together
+# once the runner has a stable Xcode 27; the workload set must match the SDK band.
+# dotnet-workload-env (from gitlab-runner-install) gives these pins a .NET install of their own, so CI and release jobs
+# or other projects on the same Mac can run at once without changing each other's workloads. Without it, the runner's
+# shared ~/.dotnet is used, with a global.json written by the job only (Windows and local builds are not affected).
 .macos-dotnet:
   before_script:
     - |
       # A release that already exists skips the build (in script:), so don't set anything up for it
       if [ "${RELEASE_PUBLISHED:-}" = "true" ]; then
         echo "Release already exists; nothing to set up."
+      elif command -v dotnet-workload-env > /dev/null; then
+        eval "$(dotnet-workload-env --sdk 10.0.4xx --workload-set 10.0.401)"
+        dotnet --version
       else
         if ! dotnet --list-sdks | grep -q '^10\.0\.4[0-9][0-9] '; then
           echo "Installing the .NET SDK 10.0.4xx band"
