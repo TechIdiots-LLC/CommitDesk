@@ -3,7 +3,8 @@
 #   test                    Merge requests and pushes to main: run GitLabDesktop.Core.Tests (needs git on the runner).
 #   ci-windows, ci-android  Merge requests and pushes to main: publish the Windows app (win-x64, win-arm64) and a
 #                           debug-signed Android APK as job artifacts (7 days).
-#   ci-macos                Same, for the macOS .dmg, only when MACOS_RUNNER is "true" (needs a runner tagged "macos").
+#   ci-macos                Same, for the macOS .dmg (universal: Apple silicon and Intel), on the runner tagged "macos";
+#                           MACOS_RUNNER "false" skips it
 #   release-*               Push to main: if no GitLab release exists for <ApplicationDisplayVersion>, publish the
 #                           Windows zips and NSIS installers (build/installer.nsi), the Android APK (only when a release
 #                           keystore is configured) and the macOS .dmg (only with a macOS runner), and create the release
@@ -26,7 +27,7 @@
 #   PLAY_SERVICE_ACCOUNT_JSON_BASE64
 #                              Optional: base64 of a Google Play service account key, for the manual publish-play job
 #                              (Android App Bundle to Google Play, track internal by default; see docs/maintainers.md)
-#   MACOS_RUNNER               Optional, not secret: "true" when a macOS shell runner tagged "macos" is registered
+#   MACOS_RUNNER               Optional, not secret: "false" to skip the macOS jobs (default "true", set below)
 #   MACOS_SIGNING_IDENTITY, APPLE_ID, APPLE_TEAM_ID, APPLE_APP_PASSWORD
 #                              Optional: sign and notarize the macOS app (see build/build-macos.sh); the identity must
 #                              already be in the macOS runner's keychain
@@ -47,6 +48,11 @@ variables:
   BUMP_PREID:
     value: "rc"
     description: "Prerelease identifier for the pre* bump types (e.g. alpha, beta, rc)."
+  # The macOS jobs need a runner tagged "macos" (build/build-macos.sh; see the gitlab-runner-install project). Set the
+  # project variable MACOS_RUNNER to "false" to skip them while no such runner is online, or the jobs wait for one.
+  MACOS_RUNNER:
+    value: "true"
+    description: "Build the macOS app on the runner tagged macos ('false' to skip it)."
 
 default:
   tags: [windows]
