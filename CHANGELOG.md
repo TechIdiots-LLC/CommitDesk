@@ -9,8 +9,7 @@
 
 ## 0.6.0
 ### ✨ Features and improvements
-
-### 🐞 Bug fixes
+- add macos ci
 
 ## 0.5.3
 ### ✨ Features and improvements
