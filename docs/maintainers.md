@@ -81,6 +81,10 @@ The GitLab pipeline runs on a Windows shell runner tagged `windows` with:
 - git, Python 3 and NSIS;
 - for signing, the Windows SDK.
 
+The jobs that build the app (Windows, Android, Google Play) pin the .NET SDK 10.0.4xx band and workload set 10.0.401
+in a .NET install of their own from the runner's `dotnet-workload-env`, so jobs running in parallel don't restore
+workloads into the shared install at the same time. On a runner without it they run `dotnet workload restore`.
+
 The macOS jobs (`ci-macos`, `release-macos`) run on a shell runner tagged `macos`, set up with the
 [gitlab-runner-install](https://gitlab.techidiots.net/techidiots-llc/gitlab-runner-install) project's
 `install-macos-runner.sh`. They are on by default; set the project variable `MACOS_RUNNER` to `false` to skip them
