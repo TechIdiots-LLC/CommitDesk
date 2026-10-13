@@ -3,6 +3,12 @@
 ## master
 ### ✨ Features and improvements
 - _...Add new stuff here..._
+
+### 🐞 Bug fixes
+- _...Add new stuff here..._
+
+## 0.5.2
+### ✨ Features and improvements
 - **Open GitHub's "Open with GitHub Desktop" links** (Windows): Options › Links from GitHub can make GitLab Desktop the app for them, through Windows Settings so it never takes them over without your say. A link opens its repository if you have it (switching to its branch) or the clone dialog with the URL filled in.
 - Only one copy of the app runs: launching it again, from a link or with `GitLabDesktop.exe <folder>`, brings the open window forward and opens it there.
 - **Servers with internal or self-signed certificates**: Options › Certificates can make git use the Windows certificate store (so a server whose certificate comes from your organisation's own authority works, as it does in the browser), and lists servers whose certificates git doesn't check. When git refuses a certificate while cloning, fetching, pulling or pushing, the app offers these and tries again.
