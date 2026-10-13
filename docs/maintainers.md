@@ -81,7 +81,10 @@ The GitLab pipeline runs on a Windows shell runner tagged `windows` with:
 - git, Python 3 and NSIS;
 - for signing, the Windows SDK.
 
-The macOS jobs run only when the CI/CD variable `MACOS_RUNNER` is `true` and a runner tagged `macos` is registered.
+The macOS jobs run only when the CI/CD variable `MACOS_RUNNER` is `true` and a runner tagged `macos` is registered. They
+write a `global.json` for the .NET SDK 10.0.4xx band (installing it if the runner lacks it) and restore workload set
+10.0.401, the same pins as the GitHub workflows, so the runner needs Xcode 26; an Intel Mac on macOS 15 (Sequoia) or
+later works and still builds the universal app.
 
 ### Secrets
 

@@ -157,12 +157,32 @@ ci-android:
       - GitLabDesktop-*.apk
     expire_in: 7 days
 
+# The .NET SDK band and workload set the macOS builds use, as in the GitHub workflows: 10.0.401.1 moved the Apple SDKs
+# to 27.0, which require Xcode 27 (and so macOS 26). 10.0.401 builds with Xcode 26, which also runs on macOS 15
+# (Sequoia) and Intel Macs. The global.json is written by the job only, so Windows builds and local builds are not
+# affected. Raise both together once the runner has a stable Xcode 27; the workload set must match the SDK band.
+.macos-dotnet:
+  before_script:
+    - |
+      # A release that already exists skips the build (in script:), so don't set anything up for it
+      if [ "${RELEASE_PUBLISHED:-}" = "true" ]; then
+        echo "Release already exists; nothing to set up."
+      else
+        if ! dotnet --list-sdks | grep -q '^10\.0\.4[0-9][0-9] '; then
+          echo "Installing the .NET SDK 10.0.4xx band"
+          curl -fsSL https://dot.net/v1/dotnet-install.sh | bash -s -- --channel 10.0.4xx --install-dir "${DOTNET_ROOT:-$HOME/.dotnet}" --no-path
+        fi
+        echo '{ "sdk": { "version": "10.0.400", "rollForward": "latestPatch" } }' > global.json
+        dotnet --version
+        dotnet workload restore GitLabDesktop.sln --version 10.0.401
+      fi
+
 ci-macos:
   stage: build
   tags: [macos]
   rules: *macos-ci-rules
+  extends: .macos-dotnet
   script:
-    - dotnet workload restore GitLabDesktop.sln
     - VERSION=$(sed -n 's:.*<ApplicationDisplayVersion>\(.*\)</ApplicationDisplayVersion>.*:\1:p' GitLabDesktop/GitLabDesktop.csproj | head -1)
     # CI builds are never signed with the release identity
     - env -u MACOS_SIGNING_IDENTITY bash build/build-macos.sh "v$VERSION-ci$CI_PIPELINE_IID-$CI_COMMIT_SHORT_SHA" .
@@ -247,11 +267,11 @@ release-macos:
   stage: build
   tags: [macos]
   rules: *macos-release-rules
+  extends: .macos-dotnet
   needs: [release-check, test]
   environment: *signing-environment
   script:
     - if [ "$RELEASE_PUBLISHED" = "true" ]; then echo "Release $RELEASE_TAG already exists; skipping."; exit 0; fi
-    - dotnet workload restore GitLabDesktop.sln
     - bash build/build-macos.sh "v$RELEASE_VERSION" release-files
   artifacts:
     paths:
