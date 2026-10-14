@@ -399,18 +399,29 @@ public sealed partial class MainViewModel
             await OpenLinkAsync(Remote!.BranchLink(Status!.Branch!));
     }
 
-    [RelayCommand]
+    /// <summary>
+    /// With an account, only when the branch has a request (open, merged or closed), as found when the branch was last
+    /// refreshed, fetched or pulled. Without one there is no way to know beforehand, so it stays available and looks.
+    /// </summary>
+    bool CanViewChangeRequest() => ViewableChangeRequest is not null || HostingService is null;
+
+    [RelayCommand(CanExecute = nameof(CanViewChangeRequest))]
     async Task ViewChangeRequest()
     {
         if (!await RequireRemoteAsync()) return;
-        if (ChangeRequest is null) await LoadHostingInfoAsync();
-        if (ChangeRequest is not null)
+        if (ViewableChangeRequest is null) await LoadHostingInfoAsync();
+        if (ViewableChangeRequest is { } known)
         {
-            await _platform.OpenUrlAsync(ChangeRequest.WebUrl);
+            await _platform.OpenUrlAsync(known.WebUrl);
             return;
         }
         // Look through the open requests: finds one from a fork too, and needs no account for a public github.com project
-        if (await FindChangeRequestForBranchAsync(HostingService ?? _hosting.AnonymousFor(Remote)) is { } found)
+        var service = HostingService ?? _hosting.AnonymousFor(Remote);
+        var found = await FindChangeRequestForBranchAsync(service);
+        // Then a merged or closed one from the branch
+        if (found is null && service is not null && Status?.Branch is { } current)
+            found = await FindPastChangeRequestAsync(service, Remote!.ProjectPath, current);
+        if (found is not null)
         {
             await _platform.OpenUrlAsync(found.WebUrl);
             return;
@@ -443,6 +454,19 @@ public sealed partial class MainViewModel
         catch (Exception)
         {
             return null;   // e.g. a private repository without an account: the caller falls back to a link
+        }
+    }
+
+    /// <summary>The branch's latest merged or closed request, or null (also when the server can't be asked).</summary>
+    static async Task<ChangeRequest?> FindPastChangeRequestAsync(IHostingService service, string projectPath, string branch)
+    {
+        try
+        {
+            return await service.FindLatestChangeRequestAsync(projectPath, branch) is { IsOpen: false } past ? past : null;
+        }
+        catch (Exception)
+        {
+            return null;
         }
     }
 

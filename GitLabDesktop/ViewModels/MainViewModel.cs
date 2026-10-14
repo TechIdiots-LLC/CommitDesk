@@ -76,9 +76,23 @@ public sealed partial class MainViewModel : ObservableObject
     [NotifyPropertyChangedFor(nameof(HasRemote), nameof(SyncSubtitle))]
     private HostedRemote? _remote;
 
+    /// <summary>The open merge/pull request from the current branch (the badge next to the branch).</summary>
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(ChangeRequestText), nameof(HasChangeRequest))]
+    [NotifyPropertyChangedFor(nameof(ChangeRequestText), nameof(HasChangeRequest), nameof(ViewChangeRequestText))]
+    [NotifyCanExecuteChangedFor(nameof(ViewChangeRequestCommand))]
     private ChangeRequest? _changeRequest;
+
+    /// <summary>
+    /// When the branch has no open request: its latest merged or closed one, so Branch › View pull request still
+    /// opens it after it is merged.
+    /// </summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ViewChangeRequestText))]
+    [NotifyCanExecuteChangedFor(nameof(ViewChangeRequestCommand))]
+    private ChangeRequest? _pastChangeRequest;
+
+    /// <summary>The request Branch › View opens: the open one, else the latest merged or closed one.</summary>
+    ChangeRequest? ViewableChangeRequest => ChangeRequest ?? PastChangeRequest;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasCi))]
@@ -150,7 +164,9 @@ public sealed partial class MainViewModel : ObservableObject
     public string CompareOnHostText => $"Compare on {ProviderName}";
     public string ViewBranchOnHostText => $"View branch on {ProviderName}";
     public string CreateChangeRequestText => $"Create {RequestName}…";
-    public string ViewChangeRequestText => $"View {RequestName} on {ProviderName}";
+    public string ViewChangeRequestText => ViewableChangeRequest is { } cr
+        ? $"View {RequestName} {cr.Reference}{cr.State switch { ChangeRequestState.Merged => " (merged)", ChangeRequestState.Closed => " (closed)", _ => "" }} on {ProviderName}"
+        : $"View {RequestName} on {ProviderName}";
     public string CopyChangeRequestLinkText => $"Copy link to {RequestName}";
     public string ViewCiText => $"View {Remote?.CiName ?? "pipeline"} on {ProviderName}";
     public string OpenOnHostText => $"Open the repository on {ProviderName}";
@@ -299,7 +315,9 @@ public sealed partial class MainViewModel : ObservableObject
         if (HostingService is not { } service || Status?.Branch is not { } branch)
         {
             ChangeRequest = null;
+            PastChangeRequest = null;
             Ci = null;
+            ViewChangeRequestCommand.NotifyCanExecuteChanged();   // depends on whether there is an account
             return;
         }
         var remote = Remote!;
@@ -314,10 +332,14 @@ public sealed partial class MainViewModel : ObservableObject
             var ciTask = service.GetCiStatusAsync(remote.ProjectPath, branch);
             // The lookup by branch name only sees requests from the project's own branches; else look through them all
             var cr = await crTask ?? await FindChangeRequestForBranchAsync(service, lookUpDirectly: false);
+            // No open one: the branch's latest merged or closed request, if it had one
+            var past = cr is null ? await FindPastChangeRequestAsync(service, remote.ProjectPath, branch) : null;
             var ci = await ciTask;
             if (Remote != remote || Status?.Branch != branch) return;   // moved on meanwhile
             ChangeRequest = cr;
+            PastChangeRequest = past;
             Ci = ci;
+            ViewChangeRequestCommand.NotifyCanExecuteChanged();
         }
         catch (Exception ex)
         {

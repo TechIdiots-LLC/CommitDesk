@@ -11,11 +11,16 @@ public sealed record HostedUser(string Login, string Name);
 /// <summary>A project (GitLab) or repository (GitHub) that can be cloned.</summary>
 public sealed record HostedProject(string FullName, string? Description, string HttpUrl, string SshUrl, string WebUrl);
 
-/// <summary>An open merge request (GitLab) or pull request (GitHub).</summary>
-public sealed record ChangeRequest(HostingKind Kind, long Number, string Title, string WebUrl, bool Draft)
+public enum ChangeRequestState { Open, Merged, Closed }
+
+/// <summary>A merge request (GitLab) or pull request (GitHub); open unless <paramref name="State"/> says otherwise.</summary>
+public sealed record ChangeRequest(HostingKind Kind, long Number, string Title, string WebUrl, bool Draft,
+    ChangeRequestState State = ChangeRequestState.Open)
 {
     /// <summary>"!12" on GitLab, "#12" on GitHub.</summary>
     public string Reference => Kind == HostingKind.GitHub ? $"#{Number}" : $"!{Number}";
+
+    public bool IsOpen => State == ChangeRequestState.Open;
 }
 
 /// <summary>An open merge/pull request as listed in the branch dropdown, with what checking it out needs.</summary>
@@ -93,6 +98,11 @@ public interface IHostingService
     Task<IReadOnlyList<string>> ListBranchesAsync(string projectPath, CancellationToken ct = default);
 
     Task<ChangeRequest?> FindOpenChangeRequestAsync(string projectPath, string sourceBranch, CancellationToken ct = default);
+
+    /// <summary>
+    /// The most recently updated request from a branch of the project, in any state: open, merged or closed.
+    /// </summary>
+    Task<ChangeRequest?> FindLatestChangeRequestAsync(string projectPath, string sourceBranch, CancellationToken ct = default);
 
     /// <summary>Open merge/pull requests into the project, newest first.</summary>
     Task<IReadOnlyList<OpenChangeRequest>> ListOpenChangeRequestsAsync(string projectPath, CancellationToken ct = default);

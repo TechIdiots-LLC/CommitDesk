@@ -141,6 +141,16 @@ public sealed class GitLabClient(HttpClient http) : IHostingService
             ? new ChangeRequest(HostingKind.GitLab, mr.Iid, mr.Title, mr.WebUrl, mr.Draft)
             : null;
 
+    public async Task<ChangeRequest?> FindLatestChangeRequestAsync(string projectPath, string sourceBranch, CancellationToken ct = default)
+    {
+        var list = await GetAsync<List<GitLabMergeRequest>>(
+            $"projects/{Id(projectPath)}/merge_requests?state=all&order_by=updated_at&sort=desc&per_page=1&source_branch={Uri.EscapeDataString(sourceBranch)}", ct);
+        if (list.FirstOrDefault() is not { } mr) return null;
+        // GitLab states: opened, merged, closed, locked (being merged)
+        var state = mr.State switch { "merged" => ChangeRequestState.Merged, "closed" => ChangeRequestState.Closed, _ => ChangeRequestState.Open };
+        return new ChangeRequest(HostingKind.GitLab, mr.Iid, mr.Title, mr.WebUrl, mr.Draft, state);
+    }
+
     public async Task<CiStatus?> GetCiStatusAsync(string projectPath, string branch, CancellationToken ct = default)
         => await GetLatestPipelineAsync(projectPath, branch, ct) is { } p ? new CiStatus(p.Status, p.WebUrl) : null;
 

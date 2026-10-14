@@ -85,6 +85,57 @@ public class ChangeRequestTests
     }
 
     [Theory]
+    [InlineData("open", null, ChangeRequestState.Open)]
+    [InlineData("closed", "2026-09-05T10:00:00Z", ChangeRequestState.Merged)]
+    [InlineData("closed", null, ChangeRequestState.Closed)]
+    public async Task GitHubLatestPullInAnyState(string state, string? mergedAt, ChangeRequestState expected)
+    {
+        var json = $$"""
+            [ { "number": 21, "title": "Done", "html_url": "https://github.com/o/p/pull/21", "draft": false, "state": "{{state}}",
+                "merged_at": {{(mergedAt is null ? "null" : $"\"{mergedAt}\"")}} } ]
+            """;
+        string? url = null;
+        var gh = new GitHubClient(new HttpClient(new FakeHandler(r => { url = r.RequestUri!.ToString(); return json; })));
+        gh.Configure("token");
+
+        var cr = await gh.FindLatestChangeRequestAsync("o/p", "feature/x");
+
+        Assert.Contains("state=all", url);
+        Assert.Contains("head=o%3Afeature%2Fx", url);
+        Assert.Equal((21L, "https://github.com/o/p/pull/21", expected), (cr!.Number, cr.WebUrl, cr.State));
+    }
+
+    [Theory]
+    [InlineData("opened", ChangeRequestState.Open)]
+    [InlineData("merged", ChangeRequestState.Merged)]
+    [InlineData("closed", ChangeRequestState.Closed)]
+    [InlineData("locked", ChangeRequestState.Open)]
+    public async Task GitLabLatestMergeRequestInAnyState(string state, ChangeRequestState expected)
+    {
+        string? url = null;
+        var gl = new GitLabClient(new HttpClient(new FakeHandler(r =>
+        {
+            url = r.RequestUri!.ToString();
+            return $$"""[ { "iid": 7, "title": "Done", "web_url": "https://gitlab.example.com/g/p/-/merge_requests/7", "state": "{{state}}" } ]""";
+        })));
+        gl.Configure("https://gitlab.example.com", "token");
+
+        var cr = await gl.FindLatestChangeRequestAsync("g/p", "feature");
+
+        Assert.Contains("state=all", url);
+        Assert.Contains("source_branch=feature", url);
+        Assert.Equal(("!7", expected), (cr!.Reference, cr.State));
+    }
+
+    [Fact]
+    public async Task NoRequestFromTheBranch()
+    {
+        var gh = new GitHubClient(new HttpClient(new FakeHandler(_ => "[]")));
+        gh.Configure("token");
+        Assert.Null(await gh.FindLatestChangeRequestAsync("o/p", "feature"));
+    }
+
+    [Theory]
     [InlineData("alice/project", "fork-alice")]
     [InlineData("group/sub group/project", "fork-group-sub-group")]
     public void ForkRemoteNames(string repository, string expected) => Assert.Equal(expected, GitRepository.ForkRemoteName(repository));

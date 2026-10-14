@@ -55,9 +55,10 @@ public sealed partial class MainViewModel
     [RelayCommand]
     async Task CopyChangeRequestLink()
     {
-        if (ChangeRequest is null) await LoadHostingInfoAsync();
-        if (ChangeRequest is { } request) await CopyAsync(request.WebUrl, $"the link to {request.Reference}");
-        else await _dialogs.AlertAsync("Copy link", $"{BranchName} has no open {RequestName}.");
+        if (ViewableChangeRequest is null) await LoadHostingInfoAsync();
+        // The open request, else the branch's latest merged or closed one
+        if (ViewableChangeRequest is { } request) await CopyAsync(request.WebUrl, $"the link to {request.Reference}");
+        else await _dialogs.AlertAsync("Copy link", $"{BranchName} has no {RequestName}.");
     }
 
     // ── Patches ──────────────────────────────────────────────────────────────

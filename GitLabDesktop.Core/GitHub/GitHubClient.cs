@@ -123,6 +123,8 @@ public sealed class GitHubClient(HttpClient http) : IHostingService
         public string Title { get; set; } = "";
         public string HtmlUrl { get; set; } = "";
         public bool Draft { get; set; }
+        public string State { get; set; } = "";
+        public DateTimeOffset? MergedAt { get; set; }
         public DateTimeOffset CreatedAt { get; set; }
         public User? User { get; set; }
         public PullRef? Head { get; set; }
@@ -176,6 +178,16 @@ public sealed class GitHubClient(HttpClient http) : IHostingService
         var pulls = await GetAsync<List<Pull>>(
             $"repos/{Repo(projectPath)}/pulls?state=open&head={Uri.EscapeDataString(owner + ":" + sourceBranch)}", ct);
         return pulls.FirstOrDefault() is { } p ? new ChangeRequest(HostingKind.GitHub, p.Number, p.Title, p.HtmlUrl, p.Draft) : null;
+    }
+
+    public async Task<ChangeRequest?> FindLatestChangeRequestAsync(string projectPath, string sourceBranch, CancellationToken ct = default)
+    {
+        var owner = projectPath.Split('/')[0];
+        var pulls = await GetAsync<List<Pull>>(
+            $"repos/{Repo(projectPath)}/pulls?state=all&sort=updated&direction=desc&per_page=1&head={Uri.EscapeDataString(owner + ":" + sourceBranch)}", ct);
+        if (pulls.FirstOrDefault() is not { } p) return null;
+        var state = p.State == "open" ? ChangeRequestState.Open : p.MergedAt is not null ? ChangeRequestState.Merged : ChangeRequestState.Closed;
+        return new ChangeRequest(HostingKind.GitHub, p.Number, p.Title, p.HtmlUrl, p.Draft, state);
     }
 
     public async Task<IReadOnlyList<OpenChangeRequest>> ListOpenChangeRequestsAsync(string projectPath, CancellationToken ct = default)

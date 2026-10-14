@@ -49,7 +49,7 @@ link to merge request** (or pull request), View branch on GitLab/GitHub, Create 
 | **Compare on *GitLab/GitHub*** (Ctrl+Shift+C) | The current branch compared with the default branch, on the server. |
 | **View branch on *GitLab/GitHub*** (Ctrl+Alt+B) | The current branch's page on the server. |
 | **Create merge request / pull request** (Ctrl+Alt+P) | See [below](#merge-requests-and-pull-requests). |
-| **View merge request / pull request** (Ctrl+R) | Opens the current branch's open merge/pull request. |
+| **View merge request / pull request** (Ctrl+R) | Opens the current branch's merge/pull request: the open one, else its latest merged or closed one (the menu then says, for example, "View pull request #12 (merged)"). With an account it is greyed out when the branch has none; the app checks when the branch is refreshed, fetched or pulled. |
 | **View pipeline / checks** | Opens the latest CI run for the current branch. |
 
 The wording follows the server: GitLab repositories get *merge requests* and *pipelines*, and GitHub repositories get
