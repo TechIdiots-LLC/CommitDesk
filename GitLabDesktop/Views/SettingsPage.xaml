@@ -158,11 +158,11 @@
                 <BoxView Style="{StaticResource Separator}" Margin="0,8" />
 
                 <Label Text="Updates" Style="{StaticResource SectionHeader}" />
-                <Grid ColumnDefinitions="Auto,*">
+                <Grid ColumnDefinitions="Auto,*" IsVisible="{Binding ShowUpdateOptions}">
                     <CheckBox IsChecked="{Binding AutoCheckUpdates}" />
                     <Label Grid.Column="1" Text="Check for a new version when the app starts" VerticalOptions="Center" />
                 </Grid>
-                <Grid ColumnDefinitions="Auto,*">
+                <Grid ColumnDefinitions="Auto,*" IsVisible="{Binding ShowUpdateOptions}">
                     <CheckBox IsChecked="{Binding IncludePrereleases}" />
                     <Label Grid.Column="1" Text="Include pre-releases (e.g. 0.2.0-rc.1)" VerticalOptions="Center" />
                 </Grid>

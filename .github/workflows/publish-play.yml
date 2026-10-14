@@ -80,7 +80,7 @@ jobs:
           KEY_PASS: ${{ secrets.ANDROID_KEY_PASSWORD || secrets.ANDROID_KEYSTORE_PASSWORD }}
         run: |
           dotnet publish GitLabDesktop/GitLabDesktop.csproj -f net10.0-android36.0 -c Release `
-            -p:AndroidPackageFormat=aab -p:AndroidKeyStore=true `
+            -p:PlayStore=true -p:AndroidPackageFormat=aab -p:AndroidKeyStore=true `
             -p:AndroidSigningKeyStore="$env:ANDROID_KEYSTORE_PATH" -p:AndroidSigningStorePass="$env:KEYSTORE_PASS" `
             -p:AndroidSigningKeyAlias="$env:KEY_ALIAS" -p:AndroidSigningKeyPass="$env:KEY_PASS" `
             --output ./publish/play

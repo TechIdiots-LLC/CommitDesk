@@ -151,7 +151,12 @@ public sealed partial class SettingsViewModel : ModalViewModel<bool>
 
     void RemoveAccount(AccountViewModel account) => Accounts.Remove(account);
 
-    public string CurrentVersionText => $"Installed version: {AppUpdater.CurrentVersion}. Help › Check for updates checks now.";
+    public string CurrentVersionText => AppUpdater.IsSupported
+        ? $"Installed version: {AppUpdater.CurrentVersion}. Help › Check for updates checks now."
+        : $"Installed version: {AppUpdater.CurrentVersion}.";
+
+    /// <summary>False in the Google Play build, which updates through Play.</summary>
+    public bool ShowUpdateOptions => AppUpdater.IsSupported;
 
     [RelayCommand]
     async Task TestGit()

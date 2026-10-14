@@ -39,6 +39,13 @@
     <RuntimeIdentifiers Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">android-arm64;android-x64</RuntimeIdentifiers>
   </PropertyGroup>
 
+  <!-- Google Play build (dotnet publish -f net10.0-android36.0 -c Release -p:PlayStore=true, as the publish-play jobs do):
+       Play delivers the updates and doesn't allow apps it installs to update themselves, so PLAY_STORE turns the in-app
+       updater off (Services/AppUpdater.cs). The APK on the GitLab/GitHub releases keeps it. -->
+  <PropertyGroup Condition="'$(PlayStore)' == 'true' And $([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">
+    <DefineConstants>$(DefineConstants);PLAY_STORE</DefineConstants>
+  </PropertyGroup>
+
   <ItemGroup>
     <AssemblyMetadata Include="DisplayVersion" Value="$(ApplicationDisplayVersion)" />
   </ItemGroup>

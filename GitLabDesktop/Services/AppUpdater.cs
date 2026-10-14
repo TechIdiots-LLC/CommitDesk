@@ -60,7 +60,12 @@ public sealed class AppUpdater(DialogService dialogs)
         typeof(AppUpdater).Assembly.GetCustomAttributes<AssemblyMetadataAttribute>()
             .FirstOrDefault(a => a.Key == "DisplayVersion")?.Value ?? "0.0.0";
 
+#if PLAY_STORE
+    /// <summary>The Google Play build updates through Play, which doesn't allow apps it installs to update themselves.</summary>
+    public static bool IsSupported => false;
+#else
     public static bool IsSupported => OperatingSystem.IsWindows() || OperatingSystem.IsMacCatalyst() || OperatingSystem.IsAndroid();
+#endif
 
     /// <summary>The release file this copy updates from, or null when it can only be sent to the release page.</summary>
     static string? PlatformAsset
@@ -90,7 +95,11 @@ public sealed class AppUpdater(DialogService dialogs)
         if (_checking) return;
         if (!IsSupported)
         {
+#if PLAY_STORE
+            if (interactive) await dialogs.AlertAsync("Check for updates", "Updates are installed through Google Play.");
+#else
             if (interactive) await dialogs.AlertAsync("Check for updates", "Update checks aren't available on this platform.");
+#endif
             return;
         }
 

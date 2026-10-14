@@ -130,7 +130,8 @@ Publishing is never automatic. On GitLab, start the **publish-play** job (▶) o
 you want to publish; on GitHub, run **Actions › Publish to Google Play** (it publishes the version on the branch you
 run it from). Either one builds an Android App Bundle (`.aab`) signed with the release keystore, uploads it, and
 releases it on the `internal` testing track, with that version's changelog section as release notes (cut to Play's
-500 characters). The bundle is also kept as an artifact for 30 days.
+500 characters). It is built with `-p:PlayStore=true`, which turns the in-app updater off: Play
+ doesn't allow apps it installs to update themselves (the APK on the releases keeps the updater). The bundle is also kept as an artifact for 30 days.
 
 The job's variables choose where it goes: `PLAY_TRACK` (`internal`, `alpha` for closed testing, `beta` for open
 testing, or `production`) and `PLAY_RELEASE_STATUS` (`completed`, or `draft` to review and roll out in Play Console).

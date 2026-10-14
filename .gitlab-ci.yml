@@ -340,7 +340,7 @@ publish-play:
     - *dotnet-windows
     - dotnet restore GitLabDesktop.sln
     # Play takes App Bundles (.aab), not APKs; ApplicationVersion is the versionCode and must rise with every upload
-    - dotnet publish GitLabDesktop/GitLabDesktop.csproj -f net10.0-android36.0 -c Release -p:AndroidPackageFormat=aab
+    - dotnet publish GitLabDesktop/GitLabDesktop.csproj -f net10.0-android36.0 -c Release -p:PlayStore=true -p:AndroidPackageFormat=aab
         -p:AndroidKeyStore=true "-p:AndroidSigningKeyStore=$keystore" "-p:AndroidSigningStorePass=$env:ANDROID_KEYSTORE_PASSWORD"
         "-p:AndroidSigningKeyAlias=$env:ANDROID_KEY_ALIAS" "-p:AndroidSigningKeyPass=$keyPassword"
         --output ./publish/play
