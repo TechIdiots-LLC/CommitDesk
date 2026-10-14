@@ -50,6 +50,12 @@
     <AssemblyMetadata Include="DisplayVersion" Value="$(ApplicationDisplayVersion)" />
   </ItemGroup>
 
+  <!-- Android has no git command line: libgit2 for LibGit2Sharp (see native/android/README.md) -->
+  <ItemGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">
+    <AndroidNativeLibrary Include="..\native\android\arm64-v8a\libgit2-5853918.so" Abi="arm64-v8a" />
+    <AndroidNativeLibrary Include="..\native\android\x86_64\libgit2-5853918.so" Abi="x86_64" />
+  </ItemGroup>
+
   <ItemGroup>
     <PackageReference Include="Microsoft.Maui.Controls" Version="10.0.90" />
     <PackageReference Include="CommunityToolkit.Maui" Version="15.0.1" />

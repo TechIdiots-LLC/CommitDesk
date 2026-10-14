@@ -5,6 +5,7 @@
 - _...Add new stuff here..._
 - Branch › View pull request (merge request on GitLab) is greyed out when the branch has none, and after a request is merged or closed it opens that one, named in the menu (for example "View pull request #12 (merged)"). Copy link to pull request does the same.
 - The Google Play build has no in-app updater (Play delivers its updates); the Android APK on the releases keeps it.
+- Android (preview): cloning works, with a built-in libgit2 instead of the git command line phones don't have. Other repository operations on Android come next.
 
 ### 🐞 Bug fixes
 - _...Add new stuff here..._

@@ -35,6 +35,39 @@ public static class GitAuth
         return config;
     }
 
+    /// <summary>
+    /// The headers git would send to <paramref name="url"/> from <see cref="ExtraHeaderConfig"/>'s settings, for clients
+    /// that take headers directly (libgit2): the most specific matching http.&lt;url&gt;.extraHeader, as git picks it.
+    /// A setting's URL matches the URL itself, anything below it, and the same path with ".git".
+    /// </summary>
+    public static IEnumerable<string> ExtraHeadersFor(string url, IEnumerable<KeyValuePair<string, string>>? config)
+    {
+        const string prefix = "http.", suffix = ".extraHeader";
+        var target = StripUserInfo(url).TrimEnd('/');
+        string? best = null;
+        var bestLength = -1;
+        foreach (var (key, value) in config ?? [])
+        {
+            if (!key.StartsWith(prefix, StringComparison.OrdinalIgnoreCase) || !key.EndsWith(suffix, StringComparison.OrdinalIgnoreCase)) continue;
+            var scope = key[prefix.Length..^suffix.Length].TrimEnd('/');
+            var matches = target.Equals(scope, StringComparison.OrdinalIgnoreCase)
+                || target.StartsWith(scope + "/", StringComparison.OrdinalIgnoreCase)
+                || target.Equals(scope + ".git", StringComparison.OrdinalIgnoreCase)
+                || target.StartsWith(scope + ".git/", StringComparison.OrdinalIgnoreCase);
+            if (matches && scope.Length > bestLength)
+            {
+                best = value;
+                bestLength = scope.Length;
+            }
+        }
+        return best is null ? [] : [best];
+    }
+
+    static string StripUserInfo(string url)
+        => Uri.TryCreate(url, UriKind.Absolute, out var uri) && uri.UserInfo.Length > 0
+            ? new UriBuilder(uri) { UserName = "", Password = "" }.Uri.ToString()
+            : url;
+
     // What git, Git Credential Manager, GitLab and GitHub print when a login is missing, wrong or not allowed.
     static readonly string[] Markers =
     [

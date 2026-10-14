@@ -13,6 +13,9 @@
 
   <ItemGroup>
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
+    <!-- libgit2, for platforms without the git command line (Android). LibGit2Sharp.NativeBinaries has no Android build:
+         the app carries its own (native/android, from build/build-libgit2-android.sh) for the same libgit2 commit. -->
+    <PackageReference Include="LibGit2Sharp" Version="0.32.0" />
   </ItemGroup>
 
 </Project>

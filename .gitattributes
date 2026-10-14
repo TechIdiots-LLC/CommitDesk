@@ -1,2 +1,5 @@
 # Shell scripts run on macOS/Linux runners; CRLF would break them even if edited on Windows
 *.sh text eol=lf
+
+# Prebuilt native libraries (native/android, from build/build-libgit2-android.sh)
+*.so binary
