@@ -2,6 +2,10 @@
 # SVG and commit the results:
 #
 #   ./build/Render-Logo.ps1
+#   ./build/Render-Logo.ps1 -Svg ..\RIEI-Logos\CommitDesk\logo.svg   # from the logo archive; copies it in first
+#
+# The logo's home is the RIEI-Logos repository (CommitDesk/logo.svg, with a 1024 px logo.png); the app keeps a copy so
+# the icons can be rebuilt from this repository alone.
 #
 # Writes, all with a transparent background unless noted:
 #   Resources/AppIcon/Desktop/appicon.png   Windows/macOS app icon (MauiIcon)
@@ -11,12 +15,20 @@
 #   Resources/Splash/splash.png             the splash screen
 #
 # Needs Windows with Microsoft Edge, which draws the SVG (headless, at 2x for clean downscaling).
-param([string]$Root = (Join-Path $PSScriptRoot '..\CommitDesk\Resources'))
+param(
+    [string]$Root = (Join-Path $PSScriptRoot '..\CommitDesk\Resources'),
+    # Another copy of the logo, e.g. the one in RIEI-Logos: copied over the app's before rendering
+    [string]$Svg
+)
 
 $ErrorActionPreference = 'Stop'
 Add-Type -AssemblyName System.Drawing
 $Root = (Resolve-Path $Root).Path
 $svg = Join-Path $Root 'Logo\commitdesk-logo.svg'
+if ($Svg) {
+    Copy-Item (Resolve-Path $Svg).Path $svg -Force
+    Write-Host "copied $Svg to $svg"
+}
 
 $edge = @("${env:ProgramFiles(x86)}\Microsoft\Edge\Application\msedge.exe", "$env:ProgramFiles\Microsoft\Edge\Application\msedge.exe") |
     Where-Object { Test-Path $_ } | Select-Object -First 1

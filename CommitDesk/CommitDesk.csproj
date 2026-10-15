@@ -69,8 +69,9 @@
   </ItemGroup>
 
   <!--
-    App icon, rendered from Resources/Logo/commitdesk-logo.svg by build/Render-Logo.ps1 (which writes all the icon files
-    below). Both are named "appicon" so the generated files keep the names
+    App icon, rendered from Resources/Logo/commitdesk-logo.svg (a copy of RIEI-Logos/CommitDesk/logo.svg) by
+    build/Render-Logo.ps1, which writes all the icon files
+    below. Both are named "appicon" so the generated files keep the names
     the platforms look for (e.g. Android's @mipmap/appicon, which the manifest uses).
     Desktop (Windows, macOS): the gear on a transparent background, so the icon is the gear's own shape.
     Mobile (Android, iOS): those need an opaque square (Android masks it to a circle or squircle, iOS refuses
