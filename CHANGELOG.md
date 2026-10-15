@@ -3,13 +3,20 @@
 ## master
 ### ✨ Features and improvements
 - _...Add new stuff here..._
+
+### 🐞 Bug fixes
+- _...Add new stuff here..._
+
+## 1.0.0
+### ✨ Features and improvements
 - **GitLab Desktop is now CommitDesk**, with a new logo. The app isn't made by GitLab, and GitLab's trademark guidelines don't allow its name in other products' names. Installing or updating replaces GitLab Desktop and keeps your settings and saved sign-ins (on macOS, sign in again once). GitHub's "Open with GitHub Desktop" links and old gitlab-desktop: links still open in it.
 - Branch › View pull request (merge request on GitLab) is greyed out when the branch has none, and after a request is merged or closed it opens that one, named in the menu (for example "View pull request #12 (merged)"). Copy link to pull request does the same.
 - The Google Play build has no in-app updater (Play delivers its updates); the Android APK on the releases keeps it.
 - Android (preview): cloning works, with a built-in libgit2 instead of the git command line phones don't have. Other repository operations on Android come next.
 
 ### 🐞 Bug fixes
-- _...Add new stuff here..._
+
+- Rename commitdesk ([!21](https://gitlab.techidiots.net/techidiots-llc/CommitDesk/-/merge_requests/21)) (@acalcutt)
 - Branch › View pull request offered to create a new one after the branch's request had been merged, instead of opening it.
 
 ## 0.6.1
