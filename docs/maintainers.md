@@ -159,6 +159,48 @@ features don't work. Keep it on the internal testing track, which isn't reviewed
 
 On GitHub, the track and status are chosen when running the workflow instead of through variables.
 
+#### Store listing
+
+GitLab's trademark guidelines allow saying the app works with GitLab, but not using GitLab in its name, and require the
+™ and their trademark statement next to it.
+
+- **App name:** CommitDesk
+- **Short description** (80 characters): `Git client for GitLab™, GitHub and any git server: commit, branch and sync.`
+- **Full description:**
+
+  > CommitDesk is a git client in the style of GitHub Desktop that works with GitLab™ (gitlab.com and self-hosted
+  > servers), GitHub and any other git server.
+  >
+  > • Clone repositories from your GitLab and GitHub accounts or any URL
+  > • See merge requests, pull requests and CI status for your branch
+  > • Sign in with an access token; nothing is sent anywhere but your own servers
+  >
+  > The Android version is a preview: cloning works now, and committing, pushing and pulling are coming.
+  >
+  > CommitDesk is an independent app by TechIdiots LLC and is not affiliated with, endorsed or sponsored by GitLab Inc.
+  > or GitHub, Inc. GITLAB is a trademark of GitLab Inc. in the United States and other countries and regions.
+
+- **Graphics:** the 512 px icon is `CommitDesk/Resources/AppIcon/Desktop/appicon.png` (Play wants it on an opaque
+  background; use the navy `#0F2D4A`), a 1024×500 feature graphic, and at least two phone screenshots.
+- **Category:** Tools. **Contact:** the forum or project issues.
+- **Privacy policy URL:** `https://gitlab.techidiots.net/techidiots-llc/commitdesk/-/blob/main/docs/privacy.md`.
+
+#### Policy forms in Play Console
+
+| Form | Answer |
+| --- | --- |
+| Ads | No ads |
+| App access | All functionality available without special access: cloning a public repository needs no account. Optionally give the reviewers a read-only access token for a test project. |
+| Content rating | Utility/productivity; no violence, user-generated content shared by the app, or purchases. Expect "Everyone". |
+| Target audience | 18 and over (a developer tool; not directed at children) |
+| News app, COVID-19, government app, financial features, health | No |
+| Data safety: collected | **User IDs / other credentials:** the username and access token for each server, sent only to that server to sign in. Not shared with third parties, not used for analytics or advertising. Required for the app's purpose (signing in), entered by the user. |
+| Data safety: security | Encrypted in transit (HTTPS). Users can remove their data (remove the account, or uninstall). Data isn't collected by the developer. |
+| Data safety: not collected | Location, personal info, financial info, health, messages, photos, audio, files outside the user's repositories, contacts, app activity, web history, device IDs, crash logs (the crash log never leaves the device) |
+
+Google treats data sent off the device to any server as "collected", even when only the user's own server receives it,
+so declare the credentials rather than leave them out.
+
 ## Documentation
 
 These pages are plain Markdown with relative links and images, so they read the same on GitLab and GitHub. Screenshots

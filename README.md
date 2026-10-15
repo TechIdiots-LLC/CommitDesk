@@ -31,6 +31,7 @@ be installed. See [Getting started](docs/getting-started.md).
 - [GitLab, GitHub and other servers](docs/gitlab-and-github.md) · [Options](docs/options.md) ·
   [Keyboard shortcuts](docs/shortcuts.md)
 - [Troubleshooting](docs/troubleshooting.md)
+- [Privacy policy](docs/privacy.md) · [Third-party notices](THIRD-PARTY-NOTICES.md)
 
 In the app, **Help › Documentation** (F1) opens these pages.
 

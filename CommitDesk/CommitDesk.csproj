@@ -103,6 +103,10 @@
     <MauiImage Update="Resources\Images\logo.png" BaseSize="128,128" />
     <MauiFont Include="Resources\Fonts\*" />
     <MauiAsset Include="Resources\Raw\**" LogicalName="%(RecursiveDir)%(Filename)%(Extension)" />
+    <!-- Help › Third-party notices: the licenses of what the app ships, from the repository root -->
+    <MauiAsset Include="..\THIRD-PARTY-NOTICES.md" LogicalName="notices\THIRD-PARTY-NOTICES.md" />
+    <MauiAsset Include="..\LICENSE" LogicalName="notices\LICENSE.txt" />
+    <MauiAsset Include="..\licenses\*.txt" LogicalName="notices\%(Filename)%(Extension)" />
   </ItemGroup>
 
 </Project>

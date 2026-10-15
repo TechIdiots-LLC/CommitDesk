@@ -23,6 +23,7 @@ GitHub you can also open merge/pull requests and watch CI, without the command l
 | [GitLab, GitHub and other servers](gitlab-and-github.md) | How the app works out what kind of server a repository is on, and what that changes |
 | [Options](options.md) | Every setting in File › Options |
 | [Troubleshooting](troubleshooting.md) | Sign-in failures, update errors, the git command log and the crash log |
+| [Privacy policy](privacy.md) | What the app stores and sends (nothing to us) |
 | [Keyboard shortcuts](shortcuts.md) | All menu shortcuts |
 
 ## Working on the app

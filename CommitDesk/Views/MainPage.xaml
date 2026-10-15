@@ -143,6 +143,7 @@
             <MenuFlyoutItem Text="Check for updates…" Clicked="OnCheckForUpdatesClicked" />
             <MenuFlyoutSeparator />
             <MenuFlyoutItem Text="Git command log" Command="{Binding ShowCommandLogCommand}" />
+            <MenuFlyoutItem Text="Third-party notices" Command="{Binding ShowNoticesCommand}" />
             <MenuFlyoutItem Text="About CommitDesk" Clicked="OnAboutClicked" />
         </MenuBarItem>
     </ContentPage.MenuBarItems>

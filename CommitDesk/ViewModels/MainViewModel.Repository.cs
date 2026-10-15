@@ -293,6 +293,27 @@ public sealed partial class MainViewModel
                 : $"Added {added} repositor{(added == 1 ? "y" : "ies")} from {_settings.RepositoriesDirectory}.");
     }
 
+    /// <summary>Help › Third-party notices: this app's license, then the notices and full license texts it ships.</summary>
+    [RelayCommand]
+    async Task ShowNotices()
+    {
+        var parts = new List<string>();
+        foreach (var file in new[] { "notices/THIRD-PARTY-NOTICES.md", "notices/LICENSE.txt", "notices/libgit2-COPYING.txt", "notices/mbedtls-LICENSE.txt" })
+        {
+            try
+            {
+                await using var stream = await FileSystem.OpenAppPackageFileAsync(file);
+                using var reader = new StreamReader(stream);
+                parts.Add(await reader.ReadToEndAsync());
+            }
+            catch (Exception ex)
+            {
+                parts.Add($"({Path.GetFileName(file)} is missing: {ex.Message})");
+            }
+        }
+        await _dialogs.PushModalAsync(new TextPage("Third-party notices", string.Join("\n\n" + new string('=', 80) + "\n\n", parts)));
+    }
+
     [RelayCommand]
     Task ShowCommandLog()
     {
