@@ -298,14 +298,17 @@
 
                 <Grid ColumnDefinitions="*,*">
                     <Grid ColumnDefinitions="*,Auto,Auto,*" ColumnSpacing="6">
-                        <!-- The button handles clicks; the label and count are drawn over it so the count sits next to the text.
-                             Each is InputTransparent itself, with no layout around them: on Windows an InputTransparent
-                             layout still caught clicks on the text, so clicking "Changes" did nothing. -->
+                        <!-- The button handles clicks around the text; the label and count are drawn over it so the count
+                             sits next to the text. InputTransparent didn't pass clicks through to the button on Windows,
+                             so the label and count handle their own taps instead. -->
                         <Button Grid.ColumnSpan="4" Style="{StaticResource TabButton}" Command="{Binding ShowChangesCommand}" SemanticProperties.Description="Changes" />
-                        <Label Grid.Column="1" Text="Changes" FontAttributes="Bold" VerticalOptions="Center" InputTransparent="True"
-                               TextColor="{AppThemeBinding Light={StaticResource Black}, Dark={StaticResource White}}" />
-                        <Border Grid.Column="2" Style="{StaticResource Badge}" IsVisible="{Binding HasChanges}" InputTransparent="True"
+                        <Label Grid.Column="1" Text="Changes" FontAttributes="Bold" VerticalOptions="Center"
+                               TextColor="{AppThemeBinding Light={StaticResource Black}, Dark={StaticResource White}}">
+                            <Label.GestureRecognizers><TapGestureRecognizer Command="{Binding ShowChangesCommand}" /></Label.GestureRecognizers>
+                        </Label>
+                        <Border Grid.Column="2" Style="{StaticResource Badge}" IsVisible="{Binding HasChanges}"
                                 BackgroundColor="{AppThemeBinding Light={StaticResource BorderLight}, Dark={StaticResource BorderDark}}">
+                            <Border.GestureRecognizers><TapGestureRecognizer Command="{Binding ShowChangesCommand}" /></Border.GestureRecognizers>
                             <Label Text="{Binding ChangedFilesCount}" FontSize="11" FontAttributes="Bold" InputTransparent="True" />
                         </Border>
                         <BoxView Grid.ColumnSpan="4" HeightRequest="3" VerticalOptions="End" Color="{StaticResource GitLabOrange}" IsVisible="{Binding IsChangesTab}" InputTransparent="True" />
