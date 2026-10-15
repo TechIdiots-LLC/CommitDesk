@@ -9,7 +9,7 @@ public sealed class PickerGroup(string name, IEnumerable<PickerItem> items) : Li
 }
 
 /// <summary>
-/// A searchable list that drops down under a toolbar button, like GitHub Desktop's repository and branch lists,
+/// A searchable list that drops down under a toolbar button (the repository and branch lists)
 /// instead of covering the window. Items with a <see cref="PickerItem.Group"/> are shown under headings, and
 /// actions (such as "New branch") are buttons beside the filter. A click outside the panel or Esc cancels.
 /// An optional second tab (pull/merge requests) loads in the background while the dropdown is open.

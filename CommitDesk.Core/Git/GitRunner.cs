@@ -14,8 +14,8 @@ public sealed class GitException(string message, GitResult result) : Exception(m
 }
 
 /// <summary>
-/// Runs the git command-line client. Repository operations shell out to git (as GitHub Desktop
-/// does) so behaviour, hooks, credential helpers and config all match what the user gets in a terminal.
+/// Runs the git command-line client. Repository operations shell out to git
+/// so behaviour, hooks, credential helpers and config all match what the user gets in a terminal.
 /// </summary>
 public sealed class GitRunner
 {

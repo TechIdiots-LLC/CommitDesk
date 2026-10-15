@@ -180,7 +180,7 @@ public sealed partial class MainViewModel
         });
         if (rejected)
         {
-            // Like GitHub Desktop: fetch first, then the toolbar offers Pull with both counts (↓ ↑).
+            // Fetch first, then the toolbar offers Pull with both counts (↓ ↑).
             if (await _dialogs.ConfirmAsync("Newer commits on remote",
                     $"{status.Branch} can't be pushed because {RemoteName} has commits that aren't on your branch yet. " +
                     "Fetch them, then pull to combine them with your commits before pushing.", "Fetch"))

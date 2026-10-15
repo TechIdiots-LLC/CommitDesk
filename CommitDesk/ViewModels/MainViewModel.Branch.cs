@@ -38,7 +38,7 @@ public sealed partial class MainViewModel
 
         static string? Age(BranchInfo b) => b.LastCommitDate is { } d ? Converters.RelativeTimeConverter.Format(d) : null;
 
-        // Grouped like GitHub Desktop: the default branch, then other local branches, then remote-only ones.
+        // Grouped: the default branch, then other local branches, then remote-only ones.
         var local = branches.Where(b => !b.IsRemote)
             .OrderBy(b => b.Name == DefaultBranch ? 0 : 1)
             .Select(b => new PickerItem(b.IsCurrent ? $"✓ {b.Name}" : b.Name,
@@ -58,7 +58,7 @@ public sealed partial class MainViewModel
     static readonly Converters.PipelineStatusColorConverter CiColor = new();
 
     /// <summary>
-    /// The branch dropdown's "Pull requests" / "Merge requests" tab, like GitHub Desktop's: the project's open requests,
+    /// The branch dropdown's "Pull requests" / "Merge requests" tab: the project's open requests,
     /// then their CI status as it arrives. Null when the remote isn't on GitLab or GitHub.
     /// </summary>
     PickerTabSource? ChangeRequestsTab()
@@ -324,7 +324,7 @@ public sealed partial class MainViewModel
 
     bool _showingConflicts;
 
-    /// <summary>The Resolve conflicts dialog, like GitHub Desktop's: every conflicted file, rechecked as it's saved.</summary>
+    /// <summary>The Resolve conflicts dialog: every conflicted file, rechecked as it's saved.</summary>
     [RelayCommand]
     async Task ResolveConflicts()
     {

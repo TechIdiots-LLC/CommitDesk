@@ -4,7 +4,7 @@ using Microsoft.Maui.Controls.Shapes;
 namespace CommitDesk.Controls;
 
 /// <summary>
-/// Shows an image change the way GitHub Desktop does: the new image framed in green ("Added"), the old one in red
+/// Shows an image change: the new image framed in green ("Added"), the old one in red
 /// ("Deleted"), or both side by side when the file changed. Images sit on a checkerboard so transparency shows, and are
 /// scaled down to fit but never enlarged.
 /// </summary>

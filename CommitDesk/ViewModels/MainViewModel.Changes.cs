@@ -171,7 +171,7 @@ public sealed partial class MainViewModel
             ChangeConflict = null;
             if (ImageDiff.IsImage(file.Change.Path))
             {
-                // Shown as pictures (old and new), like GitHub Desktop; images are committed whole.
+                // Shown as pictures (old and new); images are committed whole.
                 var image = await Repo.GetWorkingImageDiffAsync(file.Change, Status.IsUnborn);
                 if (SelectedChange != file) return;
                 ChangeDiffLines = null;

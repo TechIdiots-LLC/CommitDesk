@@ -5,7 +5,7 @@ using CommitDesk.Core.Git;
 namespace CommitDesk.ViewModels;
 
 /// <summary>
-/// Repository › Repository settings, like GitHub Desktop's: the remote's URL, the .gitignore, and whether commits use
+/// Repository › Repository settings: the remote's URL, the .gitignore, and whether commits use
 /// the global git name and email or ones set for this repository only. Completes with true when something was saved.
 /// </summary>
 public sealed partial class RepositorySettingsViewModel(GitRepository repo, string remoteName) : ModalViewModel<bool>

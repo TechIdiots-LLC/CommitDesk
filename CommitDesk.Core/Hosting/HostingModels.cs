@@ -42,7 +42,7 @@ public sealed record OpenChangeRequest(
 
     public bool FromFork => SourceRepository is not null;
 
-    /// <summary>The local branch for a request from a fork, like GitHub Desktop's "pr/12" (GitLab: "mr/12").</summary>
+    /// <summary>The local branch for a request from a fork: "pr/12" (GitLab: "mr/12").</summary>
     public string ForkBranchName => Kind == HostingKind.GitHub ? $"pr/{Number}" : $"mr/{Number}";
 
     public ChangeRequest ToChangeRequest() => new(Kind, Number, Title, WebUrl, Draft);

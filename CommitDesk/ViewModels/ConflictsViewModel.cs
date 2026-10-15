@@ -28,7 +28,7 @@ public sealed partial class ConflictFileViewModel(string path) : ObservableObjec
 
     /// <summary>
     /// Resolved once a side was chosen (git no longer has it as unmerged), or once an edited file has no conflict
-    /// markers left; no need to mark it, as in GitHub Desktop. A file deleted on one side always needs a choice.
+    /// markers left; no need to mark it. A file deleted on one side always needs a choice.
     /// </summary>
     public bool IsResolved => Info is { } i && (!i.Unmerged || (i.HasOurs && i.HasTheirs && i.ExistsOnDisk && i.Markers == 0));
 
@@ -47,7 +47,7 @@ public sealed partial class ConflictFileViewModel(string path) : ObservableObjec
 }
 
 /// <summary>
-/// Lists every conflicted file of a merge, rebase, cherry-pick, revert or restored stash, like GitHub Desktop's
+/// Lists every conflicted file of a merge, rebase, cherry-pick, revert or restored stash, for the
 /// Resolve conflicts dialog. The page rechecks the files while it is open, so editing one in an editor turns it
 /// resolved without any further step.
 /// </summary>

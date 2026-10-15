@@ -136,7 +136,7 @@ public sealed partial class MainViewModel : ObservableObject
 
     Dictionary<string, string>? _repoNames;
 
-    /// <summary>Like GitHub Desktop: the project's name on the server (it follows renames), else the folder name.</summary>
+    /// <summary>The project's name on the server (it follows renames), else the folder name.</summary>
     string DisplayName(string path)
     {
         _repoNames ??= _settings.RepositoryNames;
@@ -243,7 +243,7 @@ public sealed partial class MainViewModel : ObservableObject
         foreach (var r in _settings.Repositories) Repositories.Add(r);
         if (_settings.AutoAddRepositories) await ScanRepositoriesFolderAsync();
 
-        // "CommitDesk.exe <folder>" opens that repository, like "github ." for GitHub Desktop, and an
+        // "CommitDesk.exe <folder>" opens that repository, and an
         // "Open with GitHub Desktop" link opens (or clones) its repository; otherwise the last one opens again.
         var handled = await HandleLaunchArgumentsAsync(Environment.GetCommandLineArgs().Skip(1).ToList());
         var last = _settings.LastRepository;

@@ -193,7 +193,7 @@ public sealed partial class MainViewModel
     }
 
     /// <summary>
-    /// Like GitHub Desktop's "Cherry-pick commit…": choose the branch to apply the commit to (the current one is listed
+    /// "Cherry-pick commit…": choose the branch to apply the commit to (the current one is listed
     /// first), switch there if it's another (asking about uncommitted changes as usual), then apply it.
     /// </summary>
     public async Task CherryPickCommitAsync(CommitInfo commit)
@@ -230,7 +230,7 @@ public sealed partial class MainViewModel
         if (await RequireRemoteAsync()) await OpenLinkAsync(Remote!.CommitLink(commit.Sha));
     }
 
-    // ── A file in the selected commit (right-click, like GitHub Desktop) ─────
+    // ── A file in the selected commit (right-click) ─────────────────────
 
     /// <summary>Runs the action on the file in the working folder, or says it isn't there any more.</summary>
     async Task WithWorkingFileAsync(FileChange file, Action<string> action)

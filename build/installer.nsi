@@ -265,7 +265,7 @@ Section "Uninstall"
     Delete "$DESKTOP\${APP_NAME}.lnk"
     DeleteRegKey HKLM "${UNINST_KEY}"
     ; The GitHub-link registration made from Options (Services/LinkHandlerRegistration.cs): only what the app wrote,
-    ; so another app's handler for these links (e.g. GitHub Desktop's) is left alone
+    ; so another app's handler for these links is left alone
     DeleteRegKey HKCU "Software\Classes\CommitDesk.Link"
     DeleteRegKey HKCU "Software\TechIdiots\CommitDesk"
     DeleteRegKey /ifempty HKCU "Software\TechIdiots"

@@ -4,7 +4,7 @@ public enum FileChangeKind { Modified, Added, Deleted, Renamed, Copied, Untracke
 
 public sealed record FileChange(string Path, string? OldPath, FileChangeKind Kind)
 {
-    /// <summary>Single-letter badge shown next to the file, GitHub Desktop style.</summary>
+    /// <summary>Single-letter badge shown next to the file.</summary>
     public string Badge => Kind switch
     {
         FileChangeKind.Added or FileChangeKind.Untracked => "+",

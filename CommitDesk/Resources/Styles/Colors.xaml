@@ -27,7 +27,7 @@
     <Color x:Key="Gray900">#212121</Color>
     <Color x:Key="Gray950">#141414</Color>
 
-    <!-- App surfaces (GitHub Desktop-like layout, GitLab palette) -->
+    <!-- App surfaces -->
     <Color x:Key="PageLight">#FFFFFF</Color>
     <Color x:Key="PageDark">#0D1117</Color>
     <Color x:Key="PaneLight">#F6F8FA</Color>

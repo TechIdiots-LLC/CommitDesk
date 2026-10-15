@@ -109,7 +109,7 @@ public sealed class LinkHandlerRegistration
 #if WINDOWS
         var hkcu = Microsoft.Win32.Registry.CurrentUser;
         // The user's choice of this app in Settings would point at nothing; clear it so the other app's handler (e.g.
-        // GitHub Desktop's) applies again. Only ever a choice of this app: Windows protects the value but allows this.
+        // another app's) applies again. Only ever a choice of this app: Windows protects the value but allows this.
         var choicePath = $@"Software\Microsoft\Windows\Shell\Associations\UrlAssociations\{GitHubScheme}\UserChoice";
         bool choseThisApp;
         using (var choice = hkcu.OpenSubKey(choicePath)) choseThisApp = choice?.GetValue("ProgId") as string == ProgId;

@@ -6,7 +6,7 @@ namespace CommitDesk.Controls;
 
 /// <summary>
 /// Unified diff with line numbers. When <see cref="ToggleCommand"/> is set, clicking the gutter selects lines.
-/// Pressing on the text and dragging highlights lines to copy, as in GitHub Desktop: right-click › Copy, or Ctrl+C
+/// Pressing on the text and dragging highlights lines to copy: right-click › Copy, or Ctrl+C
 /// (Windows), copies them without the +/- markers.
 /// </summary>
 public partial class DiffView : ContentView

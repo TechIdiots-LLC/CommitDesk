@@ -8,7 +8,7 @@ public sealed partial class GitRepository
         => UseLibGit2 ? await Lg2Async(r => r.Branches[name] is { IsRemote: false }) : (await Run(["rev-parse", "--verify", "--quiet", $"refs/heads/{name}"], throwOnError: false)).Success;
 
     /// <summary>
-    /// Checks out an open merge/pull request and returns the local branch, like GitHub Desktop:
+    /// Checks out an open merge/pull request and returns the local branch:
     /// a branch of the project itself is fetched and tracked under its own name; a fork is added as a remote
     /// ("fork-owner") and its branch tracked as "pr/12" ("mr/12" on GitLab), so pulls get the author's new commits.
     /// When the fork is gone, the request's own ref on the project (refs/pull/12/head, refs/merge-requests/12/head)

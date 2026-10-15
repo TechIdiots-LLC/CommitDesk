@@ -247,7 +247,7 @@ public sealed partial class GitRepository(GitRunner git, string path)
     // ── Commit ───────────────────────────────────────────────────────────────
 
     /// <summary>
-    /// Commits exactly the selected files/lines. Like GitHub Desktop, the index is rebuilt from HEAD so
+    /// Commits exactly the selected files/lines. The index is rebuilt from HEAD so
     /// whatever was staged outside the app does not leak into the commit.
     /// </summary>
     public async Task CommitAsync(string message, IReadOnlyList<CommitFileSelection> files, bool amend, bool headIsUnborn)

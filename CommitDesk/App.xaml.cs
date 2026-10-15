@@ -35,7 +35,7 @@ public partial class App : Application
         });
 #endif
         window.Created += async (_, _) => await vm.InitializeAsync();
-        // Like GitHub Desktop, pick up changes made in other tools whenever the window regains focus.
+        // Pick up changes made in other tools whenever the window regains focus.
         window.Activated += async (_, _) => await vm.RefreshAsync();
         return window;
     }

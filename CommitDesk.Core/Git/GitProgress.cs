@@ -12,7 +12,7 @@ public sealed partial record GitProgress(string Status, double? Fraction)
     [GeneratedRegex(@"^(?:remote:\s*)?(?<phase>[A-Z][a-z]+(?: [a-z]+)*):\s+(?<pct>\d{1,3})%")]
     private static partial Regex PercentLine();
 
-    // Where each phase sits in the overall bar, roughly by how long it takes (like GitHub Desktop's weighting)
+    // Where each phase sits in the overall bar, roughly by how long it takes
     static readonly (string Phase, double Start, double End)[] Phases =
     [
         ("Enumerating objects", 0.00, 0.02),

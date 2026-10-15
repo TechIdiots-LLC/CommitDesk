@@ -159,7 +159,7 @@
               BackgroundColor="{AppThemeBinding Light={StaticResource ToolbarLight}, Dark={StaticResource ToolbarDark}}">
 
             <Grid x:Name="RepositoryButton" Style="{StaticResource ToolbarCell}" ColumnDefinitions="*,Auto">
-                <!-- Right-click, like GitHub Desktop: copy names and paths (handy for AI assistants), and open it elsewhere -->
+                <!-- Right-click: copy names and paths (handy for AI assistants), and open it elsewhere -->
                 <FlyoutBase.ContextFlyout>
                     <MenuFlyout>
                         <MenuFlyoutItem Text="Copy repository name" Command="{Binding CopyRepositoryNameCommand}" />
@@ -209,7 +209,7 @@
                     <Label Text="{Binding BranchName}" Style="{StaticResource ToolbarValue}" />
                 </VerticalStackLayout>
 
-                <!-- Merge request + pipeline badge, like GitHub Desktop's "#34 ✓" -->
+                <!-- Merge request + pipeline badge ("#34 ✓") -->
                 <Border Grid.Column="1" Style="{StaticResource Badge}" IsVisible="{Binding HasChangeRequest}"
                         BackgroundColor="{StaticResource ToolbarHover}">
                     <Border.GestureRecognizers>
@@ -485,7 +485,7 @@
                                        ToggleCommand="{Binding ToggleLineCommand}" IsVisible="{Binding IsChangeText}" />
                     <controls:ImageDiffView Grid.Row="2" Diff="{Binding ChangeImageDiff}" IsVisible="{Binding IsChangeImage}" />
 
-                    <!-- Conflicted file: resolve it with one side's version, or by editing, like GitHub Desktop -->
+                    <!-- Conflicted file: resolve it with one side's version, or by editing -->
                     <ScrollView Grid.Row="2" IsVisible="{Binding IsChangeConflict}">
                         <VerticalStackLayout Padding="24" Spacing="12" MaximumWidthRequest="640" HorizontalOptions="Start">
                             <Label Text="This file has conflicts" FontSize="20" FontAttributes="Bold" />

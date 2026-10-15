@@ -1,7 +1,7 @@
 namespace CommitDesk.Controls;
 
 /// <summary>
-/// A file path as folder (dimmed) plus file name, like GitHub Desktop's file lists. When the row is too narrow the
+/// A file path as folder (dimmed) plus file name. When the row is too narrow the
 /// folder is shortened from the front ("…Core/GitHub/") so the file name stays whole; only a file name wider than
 /// the row itself is cut, in the middle. Hovering shows the full path.
 /// </summary>
