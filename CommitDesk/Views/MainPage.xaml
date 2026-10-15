@@ -59,6 +59,7 @@
             <MenuFlyoutItem Text="Push" Command="{Binding PushCommand}">
                 <MenuFlyoutItem.KeyboardAccelerators><KeyboardAccelerator Modifiers="Ctrl" Key="P" /></MenuFlyoutItem.KeyboardAccelerators>
             </MenuFlyoutItem>
+            <MenuFlyoutItem Text="Force push…" Command="{Binding ForcePushCommand}" />
             <MenuFlyoutItem Text="Pull" Command="{Binding PullCommand}">
                 <MenuFlyoutItem.KeyboardAccelerators><KeyboardAccelerator Modifiers="Ctrl,Shift" Key="P" /></MenuFlyoutItem.KeyboardAccelerators>
             </MenuFlyoutItem>

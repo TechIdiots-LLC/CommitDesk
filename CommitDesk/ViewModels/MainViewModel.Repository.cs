@@ -137,6 +137,20 @@ public sealed partial class MainViewModel
     [RelayCommand]
     Task Push() => PushAsync(force: false);
 
+    /// <summary>Repository › Force push: replace the remote branch with this one (after a rebase or amend).</summary>
+    [RelayCommand(CanExecute = nameof(CanForcePush))]
+    async Task ForcePush()
+    {
+        if (Status is not { Branch: { } branch, Upstream: not null }) return;
+        if (!await _dialogs.ConfirmAsync("Force push?",
+                $"This replaces {branch} on {RemoteName} with your local branch. " +
+                $"Any commits on {RemoteName} that aren't on your branch will be lost.", "Force push"))
+            return;
+        await PushAsync(force: true);
+    }
+
+    bool CanForcePush() => Status is { Branch: not null, Upstream: not null, Ahead: > 0 };
+
     async Task PushAsync(bool force)
     {
         if (Repo is null || !await RequireBranchAsync()) return;

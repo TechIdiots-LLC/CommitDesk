@@ -174,7 +174,7 @@ public partial class MainPage
         if (vm.HasRepository)
         {
             groups.Add(("Repository", [
-                new("Push", vm.PushCommand), new("Pull", vm.PullCommand), new("Fetch", vm.FetchCommand),
+                new("Push", vm.PushCommand), new("Force push…", vm.ForcePushCommand), new("Pull", vm.PullCommand), new("Fetch", vm.FetchCommand),
                 new("Refresh", vm.RefreshCommand),
                 new("Switch repository…", vm.ChooseRepositoryCommand),
                 new("Repository settings…", vm.RepositorySettingsCommand),

@@ -66,6 +66,7 @@ public sealed partial class MainViewModel : ObservableObject
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(BranchName), nameof(SyncTitle), nameof(SyncSubtitle), nameof(CommitButtonText),
         nameof(CanCommit), nameof(UpdateFromDefaultText))]
+    [NotifyCanExecuteChangedFor(nameof(ForcePushCommand))]
     private RepositoryStatus? _status;
 
     [ObservableProperty]
