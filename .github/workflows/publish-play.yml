@@ -38,7 +38,7 @@ jobs:
         id: version
         shell: pwsh
         run: |
-          [xml]$csproj = Get-Content GitLabDesktop/GitLabDesktop.csproj
+          [xml]$csproj = Get-Content CommitDesk/CommitDesk.csproj
           $version = ($csproj.Project.PropertyGroup.ApplicationDisplayVersion | Where-Object { $_ } | Select-Object -First 1).Trim()
           "version=$version" >> $env:GITHUB_OUTPUT
 
@@ -54,8 +54,8 @@ jobs:
 
       - name: Restore
         run: |
-          dotnet workload restore GitLabDesktop.sln
-          dotnet restore GitLabDesktop.sln
+          dotnet workload restore CommitDesk.sln
+          dotnet restore CommitDesk.sln
 
       - name: Decode and check the release keystore
         shell: pwsh
@@ -66,7 +66,7 @@ jobs:
           KEY_PASS: ${{ secrets.ANDROID_KEY_PASSWORD || secrets.ANDROID_KEYSTORE_PASSWORD }}
         run: |
           if ([string]::IsNullOrWhiteSpace($env:KEYSTORE_B64)) { throw 'ANDROID_KEYSTORE_BASE64 is not set: Play bundles must be signed with the upload key.' }
-          $path = Join-Path $env:RUNNER_TEMP 'gitlabdesktop-play.keystore'
+          $path = Join-Path $env:RUNNER_TEMP 'commitdesk-play.keystore'
           [IO.File]::WriteAllBytes($path, [Convert]::FromBase64String($env:KEYSTORE_B64))
           echo "ANDROID_KEYSTORE_PATH=$path" >> $env:GITHUB_ENV
           ./build/Test-AndroidKeystore.ps1 -Keystore $path -StorePassword $env:KEYSTORE_PASS -Alias $env:KEY_ALIAS -KeyPassword $env:KEY_PASS
@@ -79,8 +79,8 @@ jobs:
           KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           KEY_PASS: ${{ secrets.ANDROID_KEY_PASSWORD || secrets.ANDROID_KEYSTORE_PASSWORD }}
         run: |
-          dotnet publish GitLabDesktop/GitLabDesktop.csproj -f net10.0-android36.0 -c Release `
-            -p:AndroidPackageFormat=aab -p:AndroidKeyStore=true `
+          dotnet publish CommitDesk/CommitDesk.csproj -f net10.0-android36.0 -c Release `
+            -p:PlayStore=true -p:AndroidPackageFormat=aab -p:AndroidKeyStore=true `
             -p:AndroidSigningKeyStore="$env:ANDROID_KEYSTORE_PATH" -p:AndroidSigningStorePass="$env:KEYSTORE_PASS" `
             -p:AndroidSigningKeyAlias="$env:KEY_ALIAS" -p:AndroidSigningKeyPass="$env:KEY_PASS" `
             --output ./publish/play
@@ -88,7 +88,7 @@ jobs:
           if (-not $aab) { $aab = Get-ChildItem ./publish/play -Filter *.aab -Recurse | Select-Object -First 1 }
           if (-not $aab) { throw 'No .aab found under ./publish/play' }
           New-Item -ItemType Directory play-files -Force | Out-Null
-          Copy-Item $aab.FullName "./play-files/GitLabDesktop-v${{ steps.version.outputs.version }}.aab"
+          Copy-Item $aab.FullName "./play-files/CommitDesk-v${{ steps.version.outputs.version }}.aab"
 
       - name: Keep the bundle
         # The very first upload of an app has to be done by hand in Play Console
@@ -107,4 +107,4 @@ jobs:
         if: env.PLAY_SERVICE_ACCOUNT_JSON != ''
         run: |
           python -m pip install --quiet --disable-pip-version-check google-api-python-client google-auth
-          python build/publish-play.py --aab "play-files/GitLabDesktop-v${{ steps.version.outputs.version }}.aab" --version "${{ steps.version.outputs.version }}" --track "${{ inputs.track }}" --status "${{ inputs.status }}"
+          python build/publish-play.py --aab "play-files/CommitDesk-v${{ steps.version.outputs.version }}.aab" --version "${{ steps.version.outputs.version }}" --track "${{ inputs.track }}" --status "${{ inputs.status }}"

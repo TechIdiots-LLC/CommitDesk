@@ -1,4 +1,4 @@
-# Bumps <ApplicationDisplayVersion>/<ApplicationVersion> in GitLabDesktop.csproj and rolls the "## master" section of
+# Bumps <ApplicationDisplayVersion>/<ApplicationVersion> in CommitDesk.csproj and rolls the "## master" section of
 # CHANGELOG.md into a new version section, listing merged merge/pull requests since the last tag.
 # Shared by .gitlab-ci.yml (bump-version job) and .github/workflows/bump-version.yml.
 #
@@ -12,7 +12,7 @@ import json, os, re, subprocess, sys, urllib.request
 
 version_type   = sys.argv[1]
 preid          = sys.argv[2] if len(sys.argv) > 2 and sys.argv[2].strip() else 'rc'
-csproj_path    = 'GitLabDesktop/GitLabDesktop.csproj'
+csproj_path    = 'CommitDesk/CommitDesk.csproj'
 changelog_path = 'CHANGELOG.md'
 on_github      = os.environ.get('GITHUB_ACTIONS') == 'true'
 

@@ -7,11 +7,11 @@ on the right of the repository page).
 
 | Platform | Download | Notes |
 | --- | --- | --- |
-| Windows 10/11 (x64) | `GitLabDesktop-v<version>-win-x64-setup.exe` | Recommended. Installs for all users, adds Start menu shortcuts, and lets the app update itself. |
-| Windows on ARM | `GitLabDesktop-v<version>-win-arm64-setup.exe` | As above, for ARM64 PCs. |
-| Windows (portable) | `GitLabDesktop-v<version>-win-x64.zip` or `-win-arm64.zip` | Unzip anywhere and run `GitLabDesktop.exe`. Updates open the download page instead of installing. |
-| macOS 11 or later | `GitLabDesktop-v<version>-macos.dmg` | Universal (Apple silicon and Intel). Drag the app to Applications. If the build isn't notarized, right-click it and choose **Open** the first time. |
-| Android | `GitLabDesktop-v<version>-android-preview.apk` | Preview only, see below. |
+| Windows 10/11 (x64) | `CommitDesk-v<version>-win-x64-setup.exe` | Recommended. Installs for all users, adds Start menu shortcuts, and lets the app update itself. |
+| Windows on ARM | `CommitDesk-v<version>-win-arm64-setup.exe` | As above, for ARM64 PCs. |
+| Windows (portable) | `CommitDesk-v<version>-win-x64.zip` or `-win-arm64.zip` | Unzip anywhere and run `CommitDesk.exe`. Updates open the download page instead of installing. |
+| macOS 11 or later | `CommitDesk-v<version>-macos.dmg` | Universal (Apple silicon and Intel). Drag the app to Applications. If the build isn't notarized, right-click it and choose **Open** the first time. |
+| Android | `CommitDesk-v<version>-android-preview.apk` | Preview only, see below. |
 
 ### Git is required
 
@@ -52,7 +52,7 @@ A good order for a new setup is:
 You can also open a repository directly from a terminal or a shortcut:
 
 ```sh
-GitLabDesktop.exe C:\path\to\repository
+CommitDesk.exe C:\path\to\repository
 ```
 
 ## Updates
@@ -60,7 +60,7 @@ GitLabDesktop.exe C:\path\to\repository
 The app checks for a new version when it starts and from **Help › Check for updates…**. When one is available you can:
 
 - **Install and restart** (Windows installer copies): the new installer is downloaded, its signature is checked, and
-  the app closes while an "Updating GitLab Desktop" window shows the install's progress, then starts again.
+  the app closes while an "Updating CommitDesk" window shows the install's progress, then starts again.
 - **Download update** or **Open download page** (portable Windows copies, macOS and Android): the download opens in
   your browser. Your settings are kept when you install over the old version.
 - **Skip this version**: the startup check stops offering it. Newer versions are still offered, and

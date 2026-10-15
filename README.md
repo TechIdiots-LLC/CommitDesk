@@ -1,9 +1,12 @@
-# GitLab Desktop
+# CommitDesk
 
-A GitHub Desktop-style git client for self-hosted GitLab servers, GitHub, and any other git server, built with .NET
-MAUI.
+A desktop git client in the style of GitHub Desktop that works with GitLab™ (self-hosted servers and gitlab.com),
+GitHub, and any other git server, built with .NET MAUI.
 
-![GitLab Desktop showing a change to commit](docs/images/changes.png)
+CommitDesk was called *GitLab Desktop* up to version 0.6. Installing or updating to CommitDesk replaces it and keeps
+your settings.
+
+![CommitDesk showing a change to commit](docs/images/changes.png)
 
 - **Commit exactly what you mean**: tick whole files, or click the gutter to commit single lines.
 - **See image changes**: before and after side by side, instead of *Binary file changed*.
@@ -28,14 +31,15 @@ be installed. See [Getting started](docs/getting-started.md).
 - [GitLab, GitHub and other servers](docs/gitlab-and-github.md) · [Options](docs/options.md) ·
   [Keyboard shortcuts](docs/shortcuts.md)
 - [Troubleshooting](docs/troubleshooting.md)
+- [Privacy policy](docs/privacy.md) · [Third-party notices](THIRD-PARTY-NOTICES.md)
 
 In the app, **Help › Documentation** (F1) opens these pages.
 
 ## Building
 
 ```sh
-dotnet build GitLabDesktop/GitLabDesktop.csproj -f net10.0-windows10.0.19041.0
-dotnet test GitLabDesktop.Core.Tests
+dotnet build CommitDesk/CommitDesk.csproj -f net10.0-windows10.0.19041.0
+dotnet test CommitDesk.Core.Tests
 ```
 
 [Building and releasing](docs/maintainers.md) covers the project layout, CI, releases, signing and version bumps.
@@ -43,4 +47,10 @@ Changes are listed in [CHANGELOG.md](CHANGELOG.md).
 
 ## License
 
-GitLab Desktop is released under the [BSD 3-Clause License](LICENSE).
+CommitDesk is released under the [BSD 3-Clause License](LICENSE).
+
+## Trademarks
+
+CommitDesk is an independent project. It is not affiliated with, endorsed, sponsored or approved by GitLab Inc. or
+GitHub, Inc. GITLAB is a trademark of GitLab Inc. in the United States and other countries and regions. GitHub and
+GitHub Desktop are trademarks of GitHub, Inc. Git is a trademark of the Software Freedom Conservancy.

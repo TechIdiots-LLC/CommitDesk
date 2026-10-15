@@ -1,6 +1,9 @@
-# GitLab Desktop documentation
+# CommitDesk documentation
 
-GitLab Desktop is a GitHub Desktop-style git client for self-hosted GitLab servers, GitHub, and any other git server.
+CommitDesk is a desktop git client in the style of GitHub Desktop that works with GitLab™ (self-hosted servers and
+gitlab.com), GitHub, and any other git server. It is not affiliated with GitLab Inc. or GitHub, Inc.; GITLAB is a
+trademark of GitLab Inc. in the United States and other countries and regions.
+
 You review your changes, pick exactly which lines to commit, switch branches, and sync with the server. On GitLab and
 GitHub you can also open merge/pull requests and watch CI, without the command line.
 
@@ -20,6 +23,7 @@ GitHub you can also open merge/pull requests and watch CI, without the command l
 | [GitLab, GitHub and other servers](gitlab-and-github.md) | How the app works out what kind of server a repository is on, and what that changes |
 | [Options](options.md) | Every setting in File › Options |
 | [Troubleshooting](troubleshooting.md) | Sign-in failures, update errors, the git command log and the crash log |
+| [Privacy policy](privacy.md) | What the app stores and sends (nothing to us) |
 | [Keyboard shortcuts](shortcuts.md) | All menu shortcuts |
 
 ## Working on the app

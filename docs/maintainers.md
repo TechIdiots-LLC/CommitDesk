@@ -5,23 +5,23 @@
 You need the .NET 10 SDK with the MAUI workload (`dotnet workload install maui`) and git.
 
 ```sh
-dotnet build GitLabDesktop/GitLabDesktop.csproj -f net10.0-windows10.0.19041.0
-dotnet test GitLabDesktop.Core.Tests
+dotnet build CommitDesk/CommitDesk.csproj -f net10.0-windows10.0.19041.0
+dotnet test CommitDesk.Core.Tests
 ```
 
-`GitLabDesktop.sln` opens the projects in Visual Studio. To run against a repository directly:
+`CommitDesk.sln` opens the projects in Visual Studio. To run against a repository directly:
 
 ```sh
-GitLabDesktop.exe C:\path\to\repository
+CommitDesk.exe C:\path\to\repository
 ```
 
 ## Project layout
 
 | Project | Contents |
 | --- | --- |
-| `GitLabDesktop.Core` | Plain .NET 10 library: the git CLI wrapper (`Git/`), status, diff and log parsing, the partial-commit patch builder, image headers, host detection and links (`Hosting/`), the GitLab and GitHub REST clients (`GitLab/`, `GitHub/`), and the update feed (`Updates/`). |
-| `GitLabDesktop.Core.Tests` | xUnit tests, mostly against real temporary git repositories. |
-| `GitLabDesktop` | The MAUI app. `ViewModels/MainViewModel.*.cs` is split by menu area, and `Views/MainPage.xaml` holds the main window. |
+| `CommitDesk.Core` | Plain .NET 10 library: the git CLI wrapper (`Git/`), status, diff and log parsing, the partial-commit patch builder, image headers, host detection and links (`Hosting/`), the GitLab and GitHub REST clients (`GitLab/`, `GitHub/`), and the update feed (`Updates/`). |
+| `CommitDesk.Core.Tests` | xUnit tests, mostly against real temporary git repositories. |
+| `CommitDesk` | The MAUI app. `ViewModels/MainViewModel.*.cs` is split by menu area, and `Views/MainPage.xaml` holds the main window. |
 | `build/` | Scripts shared by the GitLab and GitHub pipelines: installer, signing, macOS packaging, version bump. |
 | `docs/` | This documentation. |
 
@@ -56,7 +56,7 @@ scripts in `build/`. The project lives on GitLab and is mirrored to GitHub, so b
   ARM64), a debug-signed Android APK and, on GitHub (or GitLab with a macOS runner), an ad-hoc signed macOS `.dmg`.
   The builds are kept as 7-day artifacts.
 - **Release** runs on pushes to `main`. When no release exists yet for `<ApplicationDisplayVersion>` in
-  `GitLabDesktop/GitLabDesktop.csproj`, it runs the tests, then builds and publishes:
+  `CommitDesk/CommitDesk.csproj`, it runs the tests, then builds and publishes:
   - the Windows zips and installers;
   - the macOS `.dmg`;
   - the Android APK, only when a release keystore is configured.
@@ -112,7 +112,7 @@ On GitLab, make the secrets Protected and Masked with environment scope `signing
 ### Signing and updates
 
 Installed Windows copies update themselves by running the new installer with `/UPDATE /D=<install folder>`. In
-update mode the installer shows only its progress page ("Updating GitLab Desktop"), waits there for the app to exit,
+update mode the installer shows only its progress page ("Updating CommitDesk"), waits there for the app to exit,
 closes by itself when done and restarts the app. Versions up to 0.4.0 also pass `/S`, which runs the same update
 without a window. Before running the installer, the app
 checks the installer's Authenticode signature, but only when the running app is itself signed. A self-signed
@@ -121,28 +121,29 @@ running app. If releases are self-signed, changing the certificate means users m
 once.
 
 The app finds releases on this project's GitLab releases first, and GitHub's as a fallback. The project locations are
-constants in `GitLabDesktop/Services/AppUpdater.cs`, along with the documentation link used by Help › Documentation.
+constants in `CommitDesk/Services/AppUpdater.cs`, along with the documentation link used by Help › Documentation.
 
 ### Google Play
 
-The app is published on Google Play by the developer account **techidiots-llc**, as package `net.techidiots.gitlabdesktop`.
+The app is published on Google Play by the developer account **techidiots-llc**, as package `net.techidiots.commitdesk`.
 Publishing is never automatic. On GitLab, start the **publish-play** job (▶) on the release pipeline of the version
 you want to publish; on GitHub, run **Actions › Publish to Google Play** (it publishes the version on the branch you
 run it from). Either one builds an Android App Bundle (`.aab`) signed with the release keystore, uploads it, and
 releases it on the `internal` testing track, with that version's changelog section as release notes (cut to Play's
-500 characters). The bundle is also kept as an artifact for 30 days.
+500 characters). It is built with `-p:PlayStore=true`, which turns the in-app updater off: Play
+ doesn't allow apps it installs to update themselves (the APK on the releases keeps the updater). The bundle is also kept as an artifact for 30 days.
 
 The job's variables choose where it goes: `PLAY_TRACK` (`internal`, `alpha` for closed testing, `beta` for open
 testing, or `production`) and `PLAY_RELEASE_STATUS` (`completed`, or `draft` to review and roll out in Play Console).
 Set them when starting the job. Every upload needs a higher version code than the last; that is
-`<ApplicationVersion>` in `GitLabDesktop.csproj`, which the version bump raises.
+`<ApplicationVersion>` in `CommitDesk.csproj`, which the version bump raises.
 
 The Android app is still a preview (there is no git on phones), and Play's review can reject apps whose main
 features don't work. Keep it on the internal testing track, which isn't reviewed, until it does.
 
 **Setting up Play (once):**
 
-1. In Play Console, create the app, with the package name `net.techidiots.gitlabdesktop`.
+1. In Play Console, create the app, with the package name `net.techidiots.commitdesk`.
 2. Upload the first bundle by hand (Google only accepts API uploads for an app that already has one): run the
    publish-play job before setting up the Play key below. Without the key it builds and signs the bundle, skips the
    upload with a warning, and still succeeds. Download the `.aab` from the job's artifacts (GitHub: the
@@ -157,6 +158,52 @@ features don't work. Keep it on the internal testing track, which isn't reviewed
    is) in the `release` environment.
 
 On GitHub, the track and status are chosen when running the workflow instead of through variables.
+
+#### Store listing
+
+GitLab's trademark guidelines allow saying the app works with GitLab, but not using GitLab in its name, and require the
+™ and their trademark statement next to it.
+
+- **App name:** CommitDesk
+- **Short description** (80 characters): `Git client for GitLab™, GitHub and any git server: commit, branch and sync.`
+- **Full description:**
+
+  > CommitDesk is a git client in the style of GitHub Desktop that works with GitLab™ (gitlab.com and self-hosted
+  > servers), GitHub and any other git server.
+  >
+  > • Clone repositories from your GitLab and GitHub accounts or any URL
+  > • See merge requests, pull requests and CI status for your branch
+  > • Sign in with an access token; nothing is sent anywhere but your own servers
+  >
+  > The Android version is a preview: cloning works now, and committing, pushing and pulling are coming.
+  >
+  > CommitDesk is an independent app by TechIdiots LLC and is not affiliated with, endorsed or sponsored by GitLab Inc.
+  > or GitHub, Inc. GITLAB is a trademark of GitLab Inc. in the United States and other countries and regions.
+
+- **Graphics:** the 512 px icon is `CommitDesk/Resources/AppIcon/Desktop/appicon.png` (Play wants it on an opaque
+  background; use the navy `#0F2D4A`), a 1024×500 feature graphic, and at least two phone screenshots.
+- **Category:** Tools. **Contact:** the forum or project issues.
+- **Privacy policy URL:** `https://gitlab.techidiots.net/techidiots-llc/commitdesk/-/blob/main/docs/privacy.md`.
+
+The privacy policy ([privacy.md](privacy.md)) is written so other TechIdiots apps (VistumblerMAUI, for example) can
+reuse it: the sections "What the app stores on your device", "What the app sends, and to whom" and "Location data", and
+the trademark line at the end, are specific to CommitDesk; the rest applies to any of the apps as it is.
+
+#### Policy forms in Play Console
+
+| Form | Answer |
+| --- | --- |
+| Ads | No ads |
+| App access | All functionality available without special access: cloning a public repository needs no account. Optionally give the reviewers a read-only access token for a test project. |
+| Content rating | Utility/productivity; no violence, user-generated content shared by the app, or purchases. Expect "Everyone". |
+| Target audience | 18 and over (a developer tool; not directed at children) |
+| News app, COVID-19, government app, financial features, health | No |
+| Data safety: collected | **User IDs / other credentials:** the username and access token for each server, sent only to that server to sign in. Not shared with third parties, not used for analytics or advertising. Required for the app's purpose (signing in), entered by the user. |
+| Data safety: security | Encrypted in transit (HTTPS). Users can remove their data (remove the account, or uninstall). Data isn't collected by the developer. |
+| Data safety: not collected | Location, personal info, financial info, health, messages, photos, audio, files outside the user's repositories, contacts, app activity, web history, device IDs, crash logs (the crash log never leaves the device) |
+
+Google treats data sent off the device to any server as "collected", even when only the user's own server receives it,
+so declare the credentials rather than leave them out.
 
 ## Documentation
 

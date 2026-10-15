@@ -2,7 +2,7 @@
 # Shared by .gitlab-ci.yml (publish-play job) and .github/workflows/publish-play.yml.
 #
 # Usage:
-#   python build/publish-play.py --aab GitLabDesktop.aab --version 0.5.0 [--track internal] [--status completed]
+#   python build/publish-play.py --aab CommitDesk.aab --version 0.5.0 [--track internal] [--status completed]
 #
 # Needs: pip install google-api-python-client google-auth
 #
@@ -15,7 +15,7 @@
 # uploaded there by hand (which also sets up Play App Signing). See docs/maintainers.md.
 import argparse, base64, json, os, re, sys
 
-PACKAGE = 'net.techidiots.gitlabdesktop'
+PACKAGE = 'net.techidiots.commitdesk'
 NOTES_LIMIT = 500   # Play's limit per language
 
 
