@@ -164,11 +164,8 @@ public sealed partial class CloneViewModel : ModalViewModel<string?>
             {
                 try
                 {
-                    if (OperatingSystem.IsAndroid())
-                        // No git command line: libgit2, signed in with the headers git would get
-                        await LibGit2Clone.CloneAsync(Url.Trim(), LocalPath, RecurseSubmodules, _settings.GetGitConfig(), _cloneCts.Token, OnCloneProgress);
-                    else
-                        await GitRepository.CloneAsync(_git, Url.Trim(), LocalPath, RecurseSubmodules, _cloneCts.Token, OnCloneProgress);
+                    // Through libgit2 where there is no git (GitRunner.UseLibGit2)
+                    await GitRepository.CloneAsync(_git, Url.Trim(), LocalPath, RecurseSubmodules, _cloneCts.Token, OnCloneProgress);
                     break;
                 }
                 catch (GitException ex) when (GitSignInService.IsAuthenticationFailure(ex))

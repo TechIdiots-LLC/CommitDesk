@@ -30,6 +30,28 @@ public sealed class GitRunner
     /// </summary>
     public Func<IReadOnlyList<KeyValuePair<string, string>>>? ConfigProvider { get; set; }
 
+    /// <summary>
+    /// No git command line here (Android): <see cref="GitRepository"/> works through libgit2 instead
+    /// (GitRepository.LibGit2.cs), and anything that would still run git fails with a message saying it isn't available
+    /// on this device yet, rather than "git not found".
+    /// </summary>
+    public bool UseLibGit2 { get; set; }
+
+    /// <summary>The error for a git command reached while <see cref="UseLibGit2"/> is set: not ported yet.</summary>
+    static GitException NotAvailable(IEnumerable<string> args)
+    {
+        // The git subcommand, past options such as -c key=value and --literal-pathspecs
+        var list = args.ToList();
+        string? verb = null;
+        for (int i = 0; i < list.Count && verb is null; i++)
+        {
+            if (list[i] == "-c") i++;
+            else if (!list[i].StartsWith('-')) verb = list[i];
+        }
+        var message = $"This isn't available on this device yet (git {verb ?? "command"}).";
+        return new GitException(message, new GitResult(127, "", message));
+    }
+
     /// <summary>Raised after every command, for the output log.</summary>
     public event Action<string, GitResult>? CommandCompleted;
 
@@ -41,6 +63,7 @@ public sealed class GitRunner
         CancellationToken ct = default,
         Action<string>? progress = null)
     {
+        if (UseLibGit2) throw NotAvailable(args);
         var psi = CreateStartInfo(workingDirectory, args, stdin is not null);
         using var proc = Start(psi);
 
@@ -105,6 +128,7 @@ public sealed class GitRunner
     /// </summary>
     public async Task<byte[]?> ReadBytesAsync(string workingDirectory, IEnumerable<string> args, CancellationToken ct = default)
     {
+        if (UseLibGit2) throw NotAvailable(args);
         var psi = CreateStartInfo(workingDirectory, args, redirectStdin: false);
         using var proc = Start(psi);
 

@@ -22,6 +22,7 @@ public static class LibGit2Clone
 
         var options = new CloneOptions { RecurseSubmodules = recurseSubmodules };
         options.FetchOptions.CustomHeaders = GitAuth.ExtraHeadersFor(url, config).ToArray();
+        options.FetchOptions.CertificateCheck = GitCertificates.CertificateCheckFor(url);
         options.FetchOptions.OnTransferProgress = p =>
         {
             if (p.TotalObjects > 0 && p.ReceivedObjects < p.TotalObjects)

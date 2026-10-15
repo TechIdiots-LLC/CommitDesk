@@ -33,7 +33,7 @@ public static class MauiProgram
 
         // ── Infrastructure ───────────────────────────────────────────────────
         services.AddSingleton<AppSettings>();
-        services.AddSingleton<GitRunner>();
+        services.AddSingleton(_ => CreateGitRunner());
         services.AddHttpClient("hosting", c =>
         {
             c.Timeout = TimeSpan.FromSeconds(30);
@@ -57,5 +57,19 @@ public static class MauiProgram
         services.AddSingleton<MainPage>();
 
         return builder.Build();
+    }
+
+    /// <summary>
+    /// Git through the git command line, or through libgit2 where there is none (Android and iOS). Setting the
+    /// environment variable COMMITDESK_LIBGIT2=1 uses libgit2 on Windows and macOS too, to try the Android code paths.
+    /// </summary>
+    static GitRunner CreateGitRunner()
+    {
+        var useLibGit2 = OperatingSystem.IsAndroid() || OperatingSystem.IsIOS()
+            || Environment.GetEnvironmentVariable("COMMITDESK_LIBGIT2") == "1";
+        // libgit2's user config (git's ~/.gitconfig): the app's own folder on a phone, which has no home directory
+        if (OperatingSystem.IsAndroid() || OperatingSystem.IsIOS())
+            LibGit2Setup.Configure(Path.Combine(FileSystem.AppDataDirectory, "home"));
+        return new GitRunner { UseLibGit2 = useLibGit2 };
     }
 }

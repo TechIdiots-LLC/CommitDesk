@@ -44,7 +44,7 @@ reports an authentication failure, the app shows its own sign-in prompt and retr
 | --- | --- |
 | Windows (x64, ARM64) | Primary target. Released as zips and NSIS installers. |
 | macOS (Mac Catalyst, universal) | Released as a `.dmg`. Without a Developer ID certificate it is ad-hoc signed. |
-| Android | Preview. Installs and runs, but phones have no git command line. It would need a different git back end (such as libgit2) or an API-only mode for reviewing merge/pull requests and CI. |
+| Android | Preview. Phones have no git command line, so the app uses libgit2 (LibGit2Sharp, with the native library from `native/android`): `GitRunner.UseLibGit2` sends the repository operations in `GitRepository.LibGit2.cs` through it, and anything not ported yet says it isn't available on this device. Set the environment variable `COMMITDESK_LIBGIT2=1` to run the Windows or macOS app the same way. |
 | iOS | Compiles only; not released. |
 
 ## CI and releases

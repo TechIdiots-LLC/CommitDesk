@@ -24,7 +24,7 @@ public sealed partial class GitRepository
     /// </summary>
     public async Task SyncSubmodulesAsync(CancellationToken ct = default)
     {
-        if (!File.Exists(System.IO.Path.Combine(Path, ".gitmodules"))) return;
+        if (UseLibGit2 || !File.Exists(System.IO.Path.Combine(Path, ".gitmodules"))) return;   // not ported to libgit2 yet
         var recurse = await Run(["config", "--type=bool", "--get", "submodule.recurse"], throwOnError: false);
         if (recurse.Success && recurse.StdOut.Trim() == "true")
         {
@@ -48,6 +48,7 @@ public sealed partial class GitRepository
     /// <returns>Whether anything was removed.</returns>
     public async Task<bool> RemoveBrokenSubmoduleStubsAsync()
     {
+        if (UseLibGit2) return false;   // the stubs come from git's own recursive checkout
         var gitDir = (await Run("rev-parse", "--absolute-git-dir")).StdOut.Trim();
         var modules = System.IO.Path.Combine(gitDir, "modules");
         if (!Directory.Exists(modules)) return false;

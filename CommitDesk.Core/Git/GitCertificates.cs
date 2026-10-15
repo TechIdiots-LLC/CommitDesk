@@ -34,6 +34,7 @@ public static class GitCertificates
     /// </summary>
     public static async Task<bool> UsesWindowsCertificateStoreAsync(GitRunner git)
     {
+        if (git.UseLibGit2) return false;   // a git setting; libgit2 has its own certificate handling
         var r = await git.RunAsync(Path.GetTempPath(), ["config", "--get", "http.sslBackend"], throwOnError: false);
         return r.Success && r.StdOut.Trim().Equals("schannel", StringComparison.OrdinalIgnoreCase);
     }
@@ -44,6 +45,7 @@ public static class GitCertificates
     /// </summary>
     public static async Task SetUseWindowsCertificateStoreAsync(GitRunner git, bool value)
     {
+        if (git.UseLibGit2) return;
         var home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
         if (value)
         {
@@ -72,6 +74,7 @@ public static class GitCertificates
     /// <summary>The servers whose certificates git doesn't check (http.&lt;url&gt;.sslVerify false in the global config).</summary>
     public static async Task<IReadOnlyList<string>> GetUntrustedServersAsync(GitRunner git)
     {
+        if (git.UseLibGit2) return await Task.Run(UntrustedServersFromConfig);
         var r = await git.RunAsync(Path.GetTempPath(),
             ["config", "--global", "--type=bool", "--get-regexp", @"^http\..+\.sslverify$"], throwOnError: false);
         if (!r.Success) return [];   // exit 1: none
@@ -93,6 +96,15 @@ public static class GitCertificates
     public static async Task AddUntrustedServerAsync(GitRunner git, string server)
     {
         var key = ServerKey(server) ?? throw new ArgumentException($"{server} isn't an HTTPS server address.", nameof(server));
+        if (git.UseLibGit2)
+        {
+            await Task.Run(() =>
+            {
+                using var config = LibGit2Sharp.Configuration.BuildFrom(null);
+                config.Set($"http.{key}.sslVerify", false, LibGit2Sharp.ConfigurationLevel.Global);
+            });
+            return;
+        }
         var home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
         await git.RunAsync(home, ["config", "--global", $"http.{key}.sslVerify", "false"]);
     }
@@ -100,8 +112,43 @@ public static class GitCertificates
     /// <summary>Checks a server's certificates again.</summary>
     public static async Task RemoveUntrustedServerAsync(GitRunner git, string server)
     {
+        if (git.UseLibGit2)
+        {
+            await Task.Run(() =>
+            {
+                using var config = LibGit2Sharp.Configuration.BuildFrom(null);
+                config.Unset($"http.{server}.sslVerify", LibGit2Sharp.ConfigurationLevel.Global);
+            });
+            return;
+        }
         var home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
         // The key as listed, so entries written by hand in another form are removed too
         await git.RunAsync(home, ["config", "--global", "--unset-all", $"http.{server}.sslVerify"], throwOnError: false);
+    }
+
+    /// <summary>The untrusted servers from the user's git config through libgit2 (where there is no git).</summary>
+    public static IReadOnlyList<string> UntrustedServersFromConfig()
+    {
+        using var config = LibGit2Sharp.Configuration.BuildFrom(null);
+        const string prefix = "http.", suffix = ".sslverify";
+        return config
+            .Where(e => e.Level == LibGit2Sharp.ConfigurationLevel.Global
+                && e.Key.StartsWith(prefix, StringComparison.OrdinalIgnoreCase) && e.Key.EndsWith(suffix, StringComparison.OrdinalIgnoreCase)
+                && e.Key.Length > prefix.Length + suffix.Length
+                && string.Equals(e.Value, "false", StringComparison.OrdinalIgnoreCase))
+            .Select(e => e.Key[prefix.Length..^suffix.Length])
+            .Distinct()
+            .ToList();
+    }
+
+    /// <summary>
+    /// libgit2's certificate check: accepts what the platform trusts, and otherwise only a server the user listed as
+    /// not to check (libgit2 doesn't read http.&lt;url&gt;.sslVerify itself).
+    /// </summary>
+    public static LibGit2Sharp.Handlers.CertificateCheckHandler CertificateCheckFor(string url)
+    {
+        var server = ServerKey(url);
+        return (_, valid, _) =>
+            valid || (server is not null && UntrustedServersFromConfig().Any(s => string.Equals(ServerKey(s), server, StringComparison.OrdinalIgnoreCase)));
     }
 }

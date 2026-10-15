@@ -27,6 +27,7 @@ public sealed partial class GitRepository
     /// <summary>A value from this repository's own config (not inherited from the global one), or null.</summary>
     public async Task<string?> GetLocalConfigAsync(string key)
     {
+        if (UseLibGit2) return await Lg2Async(r => r.Config.Get<string>(key, LibGit2Sharp.ConfigurationLevel.Local)?.Value);
         var r = await Run(["config", "--local", "--get", key], throwOnError: false);
         return r.Success ? r.StdOut.TrimEnd('\r', '\n') : null;
     }
@@ -34,6 +35,7 @@ public sealed partial class GitRepository
     /// <summary>A value from the user's global git config, or null.</summary>
     public async Task<string?> GetGlobalConfigAsync(string key)
     {
+        if (UseLibGit2) return await Lg2Async(r => r.Config.Get<string>(key, LibGit2Sharp.ConfigurationLevel.Global)?.Value);
         var r = await Run(["config", "--global", "--get", key], throwOnError: false);
         return r.Success ? r.StdOut.TrimEnd('\r', '\n') : null;
     }
@@ -41,6 +43,15 @@ public sealed partial class GitRepository
     /// <summary>Sets a value in this repository's config; null or empty removes it.</summary>
     public async Task SetLocalConfigAsync(string key, string? value)
     {
+        if (UseLibGit2)
+        {
+            await Lg2Async(r =>
+            {
+                if (string.IsNullOrWhiteSpace(value)) r.Config.Unset(key, LibGit2Sharp.ConfigurationLevel.Local);
+                else r.Config.Set(key, value.Trim(), LibGit2Sharp.ConfigurationLevel.Local);
+            });
+            return;
+        }
         if (string.IsNullOrWhiteSpace(value))
             await Run(["config", "--local", "--unset", key], throwOnError: false);   // exit 5 when it wasn't set
         else
