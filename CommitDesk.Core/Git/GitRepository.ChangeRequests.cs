@@ -5,7 +5,7 @@ namespace CommitDesk.Core.Git;
 public sealed partial class GitRepository
 {
     public async Task<bool> BranchExistsAsync(string name)
-        => (await Run(["rev-parse", "--verify", "--quiet", $"refs/heads/{name}"], throwOnError: false)).Success;
+        => UseLibGit2 ? await Lg2Async(r => r.Branches[name] is { IsRemote: false }) : (await Run(["rev-parse", "--verify", "--quiet", $"refs/heads/{name}"], throwOnError: false)).Success;
 
     /// <summary>
     /// Checks out an open merge/pull request and returns the local branch, like GitHub Desktop:
@@ -17,6 +17,7 @@ public sealed partial class GitRepository
     public async Task<string> CheckoutChangeRequestAsync(string remote, OpenChangeRequest request, bool preferSsh,
         CancellationToken ct = default)
     {
+        if (UseLibGit2) return await Lg2Async(r => Lg2CheckoutChangeRequest(r, remote, request, preferSsh, ct), ct);
         if (!request.FromFork)
             return await CheckoutRemoteBranchAsync(remote, request.SourceBranch, request.SourceBranch, ct);
 

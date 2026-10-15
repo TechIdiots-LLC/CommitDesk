@@ -231,9 +231,11 @@ public class LibGit2RepositoryTests
     [Fact]
     public async Task OperationsNotPortedYetSaySo()
     {
+        // Anything that still reaches the git command line (say, a submodule update), named after git's subcommand
         using var t = await RepoWithHistoryAsync();
-        var ex = await Assert.ThrowsAsync<GitException>(() => Lg2(t).RebaseAsync("main"));
-        Assert.Equal("This isn't available on this device yet (git rebase).", ex.Message);
+        var runner = new GitRunner { UseLibGit2 = true };
+        var ex = await Assert.ThrowsAsync<GitException>(() => runner.RunAsync(t.Dir, ["-c", "submodule.recurse=false", "submodule", "update"]));
+        Assert.Equal("This isn't available on this device yet (git submodule).", ex.Message);
     }
 
     [Fact]

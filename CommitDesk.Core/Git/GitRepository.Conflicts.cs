@@ -29,6 +29,7 @@ public sealed partial class GitRepository
 
     public async Task<ConflictInfo> GetConflictAsync(string path)
     {
+        if (UseLibGit2) return await Lg2Async(r => Lg2Conflict(r, path));
         // Unmerged index entries: stage 1 = common ancestor, 2 = ours, 3 = theirs
         var stages = (await Run(["ls-files", "-u", "-z", "--", path], throwOnError: false)).StdOut
             .Split('\0', StringSplitOptions.RemoveEmptyEntries)
@@ -51,8 +52,14 @@ public sealed partial class GitRepository
     /// </summary>
     public async Task<ConflictSides> GetConflictSidesAsync(RepositoryOperation op)
     {
-        var gitDir = (await Run("rev-parse", "--absolute-git-dir")).StdOut.Trim();
-        var current = (await Run(["rev-parse", "--abbrev-ref", "HEAD"], throwOnError: false)).StdOut.Trim();
+        string gitDir, current;
+        if (UseLibGit2)
+            (gitDir, current) = await Lg2Async(r => (r.Info.Path, r.Info.IsHeadDetached ? "" : r.Head.FriendlyName));
+        else
+        {
+            gitDir = (await Run("rev-parse", "--absolute-git-dir")).StdOut.Trim();
+            current = (await Run(["rev-parse", "--abbrev-ref", "HEAD"], throwOnError: false)).StdOut.Trim();
+        }
         if (current is "" or "HEAD") current = "the current commit";
 
         string Read(string relative)
@@ -64,6 +71,11 @@ public sealed partial class GitRepository
         async Task<string> NameOf(string rev, string fallback)
         {
             if (rev.Length == 0) return fallback;
+            if (UseLibGit2)
+            {
+                var revision = rev == "MERGE_HEAD" ? Read("MERGE_HEAD") : rev;
+                return await Lg2Async(repo => NameOfCommit(repo, revision, fallback));
+            }
             var r = await Run(["name-rev", "--name-only", "--no-undefined", "--exclude=tags/*", rev], throwOnError: false);
             var name = r.StdOut.Trim();
             if (!r.Success || name.Length == 0) return fallback;
@@ -103,6 +115,11 @@ public sealed partial class GitRepository
     /// <summary>Resolves one conflicted file and marks it resolved (staged).</summary>
     public async Task ResolveConflictAsync(string path, ConflictChoice choice)
     {
+        if (UseLibGit2)
+        {
+            await Lg2Async(r => Lg2ResolveConflict(r, path, choice));
+            return;
+        }
         var info = await GetConflictAsync(path);
         var keep = choice switch
         {

@@ -420,13 +420,16 @@ public sealed partial class GitRepository(GitRunner git, string path)
     public Task DeleteRemoteBranchAsync(string remote, string name)
         => UseLibGit2 ? Lg2Async(r => Lg2DeleteRemoteBranch(r, remote, name)) : Run("push", remote, "--delete", name);
 
-    public Task MergeAsync(string branch) => RunMovingHeadAsync("merge", "--no-edit", branch);
+    public Task MergeAsync(string branch)
+        => UseLibGit2 ? Lg2Async(r => Lg2Merge(r, branch), conflictAction: "merge") : RunMovingHeadAsync("merge", "--no-edit", branch);
 
-    public Task SquashMergeAsync(string branch) => RunMovingHeadAsync("merge", "--squash", branch);
+    public Task SquashMergeAsync(string branch)
+        => UseLibGit2 ? Lg2Async(r => Lg2SquashMerge(r, branch), conflictAction: "merge") : RunMovingHeadAsync("merge", "--squash", branch);
 
-    public Task RebaseAsync(string onto) => RunMovingHeadAsync("rebase", onto);
+    public Task RebaseAsync(string onto)
+        => UseLibGit2 ? Lg2Async(r => Lg2Rebase(r, onto), conflictAction: "merge") : RunMovingHeadAsync("rebase", onto);
 
-    public Task AbortAsync(RepositoryOperation op) => op switch
+    public Task AbortAsync(RepositoryOperation op) => UseLibGit2 ? Lg2Async(r => Lg2Abort(r, op)) : op switch
     {
         RepositoryOperation.Merge => Run("merge", "--abort"),
         RepositoryOperation.Rebase => Run("rebase", "--abort"),
@@ -437,6 +440,11 @@ public sealed partial class GitRepository(GitRunner git, string path)
 
     public async Task ContinueAsync(RepositoryOperation op)
     {
+        if (UseLibGit2)
+        {
+            await Lg2Async(r => Lg2Continue(r, op), conflictAction: "merge");
+            return;
+        }
         await Run("add", "-A");
         var verb = op switch
         {
@@ -451,13 +459,16 @@ public sealed partial class GitRepository(GitRunner git, string path)
     }
 
     public Task RevertAsync(CommitInfo c)
-        => c.IsMerge ? Run("revert", "--no-edit", "-m", "1", c.Sha) : Run("revert", "--no-edit", c.Sha);
+        => UseLibGit2 ? Lg2Async(r => Lg2Revert(r, c), conflictAction: "merge") : c.IsMerge ? Run("revert", "--no-edit", "-m", "1", c.Sha) : Run("revert", "--no-edit", c.Sha);
 
-    public Task CherryPickAsync(string sha) => Run("cherry-pick", sha);
+    public Task CherryPickAsync(string sha)
+        => UseLibGit2 ? Lg2Async(r => Lg2CherryPick(r, sha), conflictAction: "merge") : Run("cherry-pick", sha);
 
-    public Task ResetToAsync(string sha) => Run("reset", "--mixed", sha);
+    public Task ResetToAsync(string sha)
+        => UseLibGit2 ? Lg2Async(r => r.Reset(ResetMode.Mixed, ResolveCommit(r, sha))) : Run("reset", "--mixed", sha);
 
-    public Task CreateTagAsync(string name, string sha) => Run("tag", "-a", name, "-m", name, sha);
+    public Task CreateTagAsync(string name, string sha)
+        => UseLibGit2 ? Lg2Async(r => { r.ApplyTag(name, sha, RequireSignature(r), name); }) : Run("tag", "-a", name, "-m", name, sha);
 
     // ── Stash ────────────────────────────────────────────────────────────────
 

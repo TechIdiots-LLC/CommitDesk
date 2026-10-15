@@ -12,6 +12,7 @@ public sealed partial class GitRepository
     /// </summary>
     public async Task<string> GetWorkingPatchAsync(IEnumerable<FileChange>? files = null, bool isUnborn = false)
     {
+        if (UseLibGit2) return await Lg2Async(r => Lg2WorkingPatch(r, files?.ToList()));
         var all = files is null;
         var changes = (files ?? (await GetStatusAsync()).Files).ToList();
         var parts = new List<string>();
@@ -37,6 +38,7 @@ public sealed partial class GitRepository
     /// <summary>One file's change in a commit (against its first parent), as a unified diff.</summary>
     public async Task<string> GetCommitFilePatchAsync(string sha, FileChange file)
     {
+        if (UseLibGit2) return await Lg2Async(r => Lg2CommitDiffText(r, sha, file));
         List<string> args = ["show", .. PlainDiff, "--first-parent", "--format=", sha, "--", file.Path];
         if (file.OldPath is { } old) args.Add(old);   // both sides of a rename
         return (await Run(args)).StdOut;
@@ -44,5 +46,5 @@ public sealed partial class GitRepository
 
     /// <summary>A commit as git show prints it: author, date, message and its diff (against its first parent).</summary>
     public async Task<string> GetCommitPatchAsync(string sha)
-        => (await Run(["show", .. PlainDiff, "--first-parent", "--format=medium", sha])).StdOut;
+        => UseLibGit2 ? await Lg2Async(r => Lg2CommitPatch(r, sha)) : (await Run(["show", .. PlainDiff, "--first-parent", "--format=medium", sha])).StdOut;
 }
