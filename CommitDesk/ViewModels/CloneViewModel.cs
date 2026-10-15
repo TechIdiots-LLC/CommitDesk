@@ -120,7 +120,14 @@ public sealed partial class CloneViewModel : ModalViewModel<string?>
 
     partial void OnUseSshChanged(bool value) => OnSelectedProjectChanged(SelectedProject);
 
-    partial void OnUrlChanged(string value) => UpdateLocalPath();
+    partial void OnUrlChanged(string value)
+    {
+        UpdateLocalPath();
+        // A URL from a link or paste: show that server's account, if there is one
+        if (HostedRemote.Parse(value, _settings.KnownHosts) is { } remote && SelectedSource?.Service.Handles(remote) != true &&
+            Sources.FirstOrDefault(s => s.Service.Handles(remote)) is { } source)
+            SelectedSource = source;
+    }
 
     partial void OnBaseDirectoryChanged(string value) => UpdateLocalPath();
 

@@ -21,9 +21,11 @@ public static class Program
         var current = AppInstance.FindOrRegisterForKey("CommitDesk");
         if (!current.IsCurrent)
         {
-            // Another copy is running: let it come to the front (this process was just started by the user, so it may
-            // grant that), and pass this launch on to it. The wait runs off the UI thread, which isn't pumping.
-            AllowSetForegroundWindow(-1);   // ASFW_ANY
+            // Another copy is running: bring its window to the front and pass this launch on to it. Only this process
+            // may take the foreground (it was just started from the browser or shell the user clicked in); the
+            // running copy can't once the hand-over reaches it, so a link would open behind the browser.
+            // The wait runs off the UI thread, which isn't pumping.
+            BringToFront((int)current.ProcessId);
             var activation = AppInstance.GetCurrent().GetActivatedEventArgs();
             Task.Run(() => current.RedirectActivationToAsync(activation).AsTask()).Wait();
             return 0;
@@ -38,8 +40,28 @@ public static class Program
         return 0;
     }
 
+    static void BringToFront(int processId)
+    {
+        AllowSetForegroundWindow(processId);
+        IntPtr window;
+        try { window = System.Diagnostics.Process.GetProcessById(processId).MainWindowHandle; }
+        catch (ArgumentException) { return; }   // exited meanwhile
+        if (window == IntPtr.Zero) return;
+        if (IsIconic(window)) ShowWindow(window, 9);   // SW_RESTORE
+        SetForegroundWindow(window);
+    }
+
     [System.Runtime.InteropServices.DllImport("user32.dll")]
     static extern bool AllowSetForegroundWindow(int processId);
+
+    [System.Runtime.InteropServices.DllImport("user32.dll")]
+    static extern bool SetForegroundWindow(IntPtr window);
+
+    [System.Runtime.InteropServices.DllImport("user32.dll")]
+    static extern bool IsIconic(IntPtr window);
+
+    [System.Runtime.InteropServices.DllImport("user32.dll")]
+    static extern bool ShowWindow(IntPtr window, int command);
 
     /// <summary>A redirected launch's command-line arguments, without the program itself.</summary>
     static IReadOnlyList<string> ArgumentsOf(AppActivationArguments e)

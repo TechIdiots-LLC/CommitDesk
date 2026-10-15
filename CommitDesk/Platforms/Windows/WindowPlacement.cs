@@ -21,11 +21,38 @@ static class WindowPlacement
         if (window.Handler?.PlatformView is not Microsoft.UI.Xaml.Window native) return;
         if (native.AppWindow.Presenter is OverlappedPresenter { State: OverlappedPresenterState.Minimized } presenter) presenter.Restore();
         native.Activate();
-        SetForegroundWindow(WinRT.Interop.WindowNative.GetWindowHandle(native));
+        var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(native);
+        // Windows may refuse (another app has the foreground): flash the taskbar button so the user sees it instead
+        if (!SetForegroundWindow(hwnd) && GetForegroundWindow() != hwnd)
+        {
+            var flash = new FlashInfo
+            {
+                Size = (uint)System.Runtime.InteropServices.Marshal.SizeOf<FlashInfo>(),
+                Window = hwnd,
+                Flags = 0x3 | 0xC,   // FLASHW_ALL | FLASHW_TIMERNOFG: until the window comes to the front
+            };
+            FlashWindowEx(ref flash);
+        }
+    }
+
+    [System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Sequential)]
+    struct FlashInfo
+    {
+        public uint Size;
+        public IntPtr Window;
+        public uint Flags;
+        public uint Count;
+        public uint Timeout;
     }
 
     [System.Runtime.InteropServices.DllImport("user32.dll")]
     static extern bool SetForegroundWindow(IntPtr window);
+
+    [System.Runtime.InteropServices.DllImport("user32.dll")]
+    static extern IntPtr GetForegroundWindow();
+
+    [System.Runtime.InteropServices.DllImport("user32.dll")]
+    static extern bool FlashWindowEx(ref FlashInfo info);
 
     public static void Attach(Window window)
     {
