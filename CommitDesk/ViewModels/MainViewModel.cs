@@ -118,6 +118,16 @@ public sealed partial class MainViewModel : ObservableObject
 
     [RelayCommand]
     void ToggleDiffExpanded() => IsDiffExpanded = !IsDiffExpanded;
+
+    /// <summary>
+    /// The phone layout (MainPage, on a narrow phone or tablet screen): one pane at a time, a ⋮ menu instead of the menu
+    /// bar, long-press instead of right-click. The desktop-only parts of the layout hide (<see cref="IsWide"/>).
+    /// </summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsWide))]
+    private bool _isCompact;
+
+    public bool IsWide => !IsCompact;
     public bool HasRepository => Repo is not null;
     public bool NoRepository => Repo is null;
     public bool HasRemote => Remote is not null;

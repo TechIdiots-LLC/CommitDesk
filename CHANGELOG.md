@@ -5,6 +5,7 @@
 - _...Add new stuff here..._
 - Copy text from a diff, as in GitHub Desktop: press on the text and drag to highlight lines, then right-click › Copy or press Ctrl+C. Right-click › Select all highlights the whole file. The copied lines leave out the +/- markers.
 - Right-click the file name above a diff to copy its path, relative path or file name.
+- Android (preview): a phone layout. The toolbar fits the screen, a ⋮ button has the menu bar's actions, lists and diffs take the whole screen one at a time (tap a file or commit to open it; Back returns), and long-pressing a file or commit shows its actions. Tablets in landscape keep the desktop layout.
 - Android (preview): git works without a git command line, through the built-in libgit2: changes and diffs, committing whole files, history, branches (create, switch, rename, delete), stash, fetch, pull and push, merging (also squash), rebasing, the conflicts dialog, revert, cherry-pick, reset, tags, checking out merge/pull requests and copying patches, with the same sign-in, "don't check this server" certificate list and error prompts as on desktop. Committing selected lines and submodules come next; until then they say they aren't available on this device.
 
 ### 🐞 Bug fixes

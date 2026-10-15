@@ -13,13 +13,16 @@ public partial class MainPage : ContentPage, IDropdownHost
 
     public MainPage(MainViewModel vm, AppUpdater updater, DialogService dialogs)
     {
+        _vm = vm;
+        CreateTouchCommands();   // before InitializeComponent: the item templates' touch bindings read them
         InitializeComponent();
-        BindingContext = _vm = vm;
+        BindingContext = vm;
         _updater = updater;
         dialogs.DropdownHost = this;
         vm.PropertyChanged += (_, e) =>
         {
             if (e.PropertyName == nameof(MainViewModel.IsDiffExpanded)) ApplyDiffExpanded(vm.IsDiffExpanded);
+            OnCompactStateChanged(e.PropertyName);
         };
         Loaded += OnFirstLoaded;
     }
@@ -44,6 +47,7 @@ public partial class MainPage : ContentPage, IDropdownHost
         var button = anchor == DropdownAnchor.Repository ? RepositoryButton : BranchButton;
         var x = button.X;
         var width = Math.Min(Math.Max(button.Width, 440), Math.Max(button.Width, Width - x));
+        if (_vm.IsCompact) (x, width) = (0, Width);   // a phone: the whole width
         var dropdown = new PickerDropdown(items, actions, emptyText, secondTab);
         dropdown.Place(x, Toolbar.Height, width);
         dropdown.Closed += (_, _) =>
@@ -136,11 +140,13 @@ public partial class MainPage : ContentPage, IDropdownHost
     void OnCopyCommitFileRelativePath(object? s, EventArgs e) => OnCommitFile(s, f => _vm.CopyCommitFilePathAsync(f, relative: true));
     void OnViewCommitFileOnHost(object? s, EventArgs e) => OnCommitFile(s, _vm.ViewCommitFileOnHostAsync);
 
-    async void OnAboutClicked(object? sender, EventArgs e)
+    async void OnAboutClicked(object? sender, EventArgs e) => await ShowAboutAsync();
+
+    Task ShowAboutAsync()
     {
         var version = Assembly.GetExecutingAssembly().GetCustomAttributes<AssemblyMetadataAttribute>()
             .FirstOrDefault(a => a.Key == "DisplayVersion")?.Value ?? "?";
-        await DisplayAlertAsync("CommitDesk", $"Version {version}\n\n" +
+        return DisplayAlertAsync("CommitDesk", $"Version {version}\n\n" +
             "A desktop git client that works with GitLab™, GitHub and any git server, built with .NET MAUI. " +
             "Formerly GitLab Desktop.\n\n" +
             "Not affiliated with GitLab Inc. or GitHub, Inc. GITLAB is a trademark of GitLab Inc. in the United States " +

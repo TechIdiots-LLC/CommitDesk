@@ -4,6 +4,8 @@
              xmlns:vm="clr-namespace:CommitDesk.ViewModels"
              xmlns:git="clr-namespace:CommitDesk.Core.Git;assembly=CommitDesk.Core"
              xmlns:controls="clr-namespace:CommitDesk.Controls"
+             xmlns:views="clr-namespace:CommitDesk.Views"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              x:Class="CommitDesk.Views.MainPage"
              x:DataType="vm:MainViewModel"
              x:Name="Page"
@@ -148,10 +150,11 @@
         </MenuBarItem>
     </ContentPage.MenuBarItems>
 
-    <Grid RowDefinitions="Auto,Auto,*,Auto">
+    <Grid RowDefinitions="Auto,Auto,Auto,*,Auto">
 
         <!-- ── Toolbar ─────────────────────────────────────────────────────── -->
-        <Grid x:Name="Toolbar" ColumnDefinitions="300,1,300,1,240,*"
+        <!-- The phone layout (MainPage.Compact.cs) sets the columns to share the width and shows the ⋮ menu instead -->
+        <Grid x:Name="Toolbar" ColumnDefinitions="300,1,300,1,240,*,0"
               BackgroundColor="{AppThemeBinding Light={StaticResource ToolbarLight}, Dark={StaticResource ToolbarDark}}">
 
             <Grid x:Name="RepositoryButton" Style="{StaticResource ToolbarCell}" ColumnDefinitions="*,Auto">
@@ -234,13 +237,22 @@
                 <Label Text="⟳" Style="{StaticResource ToolbarValue}" FontSize="20" VerticalOptions="Center" />
                 <VerticalStackLayout Grid.Column="1" VerticalOptions="Center">
                     <Label Text="{Binding SyncTitle}" Style="{StaticResource ToolbarValue}" />
-                    <Label Text="{Binding SyncSubtitle}" Style="{StaticResource ToolbarCaption}" />
+                    <Label Text="{Binding SyncSubtitle}" Style="{StaticResource ToolbarCaption}" IsVisible="{Binding IsWide}" />
                 </VerticalStackLayout>
             </Grid>
 
             <HorizontalStackLayout Grid.Column="5" HorizontalOptions="End" Spacing="8" Padding="12,0" IsVisible="{Binding IsBusy}">
                 <ActivityIndicator IsRunning="{Binding IsBusy}" Color="{StaticResource ToolbarText}" HeightRequest="20" WidthRequest="20" />
                 <Label Text="{Binding BusyText}" Style="{StaticResource ToolbarCaption}" VerticalOptions="Center" />
+            </HorizontalStackLayout>
+
+            <!-- Phone layout: the desktop menus' actions, as touch menus -->
+            <HorizontalStackLayout Grid.Column="6" Spacing="2" Padding="4,0" IsVisible="{Binding IsCompact}">
+                <ActivityIndicator IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}" Color="{StaticResource ToolbarText}"
+                                   HeightRequest="18" WidthRequest="18" VerticalOptions="Center" />
+                <Button Text="⋮" Clicked="OnMoreClicked" FontSize="22" FontAttributes="Bold" WidthRequest="44"
+                        BackgroundColor="Transparent" TextColor="{StaticResource ToolbarText}" Padding="0"
+                        SemanticProperties.Description="More actions" />
             </HorizontalStackLayout>
         </Grid>
 
@@ -255,9 +267,16 @@
                     IsVisible="{Binding HasOperation}" />
         </Grid>
 
+        <!-- ── Phone layout: back from a file or commit to its list ────────── -->
+        <Grid x:Name="BackBar" Grid.Row="2" ColumnDefinitions="Auto,*" Padding="4,2" IsVisible="False"
+              BackgroundColor="{AppThemeBinding Light={StaticResource PaneLight}, Dark={StaticResource PaneDark}}">
+            <Button x:Name="BackButton" Text="‹ Back" Clicked="OnBackClicked" Style="{StaticResource SecondaryButton}" Padding="12,4" />
+            <Label x:Name="BackTitle" Grid.Column="1" VerticalOptions="Center" Margin="10,0" FontAttributes="Bold" LineBreakMode="HeadTruncation" />
+        </Grid>
+
         <!-- ── Welcome (no repository) ─────────────────────────────────────── -->
-        <VerticalStackLayout Grid.Row="2" IsVisible="{Binding NoRepository}" Spacing="12"
-                             HorizontalOptions="Center" VerticalOptions="Center" WidthRequest="380">
+        <VerticalStackLayout Grid.Row="3" IsVisible="{Binding NoRepository}" Spacing="12" Padding="16,0"
+                             HorizontalOptions="Center" VerticalOptions="Center" MaximumWidthRequest="412">
             <Image Source="logo.png" WidthRequest="128" HeightRequest="128" HorizontalOptions="Center" Margin="0,0,0,8" />
             <Label Text="Let's get started!" FontSize="26" FontAttributes="Bold" HorizontalOptions="Center" />
             <Label Text="Add a repository to CommitDesk to start collaborating" Style="{StaticResource SecondaryText}"
@@ -270,7 +289,7 @@
         </VerticalStackLayout>
 
         <!-- ── Repository view ─────────────────────────────────────────────── -->
-        <Grid x:Name="RepoGrid" Grid.Row="2" ColumnDefinitions="340,Auto,*" IsVisible="{Binding HasRepository}">
+        <Grid x:Name="RepoGrid" Grid.Row="3" ColumnDefinitions="340,Auto,*" IsVisible="{Binding HasRepository}">
 
             <!-- Left pane (hidden when the diff is expanded to full width) -->
             <Grid RowDefinitions="Auto,1,*" IsVisible="{Binding ShowLists}"
@@ -319,6 +338,14 @@
                         <CollectionView.ItemTemplate>
                             <DataTemplate x:DataType="vm:ChangedFileViewModel">
                                 <Grid ColumnDefinitions="Auto,*,Auto,Auto" Padding="6,0,10,0" ColumnSpacing="4">
+                                    <!-- Touch screens: tap opens the file, long-press its actions (the right-click menu below) -->
+                                    <Grid.Behaviors>
+                                        <toolkit:TouchBehavior IsEnabled="{OnPlatform Default=False, Android=True, iOS=True}"
+                                                               Command="{Binding Source={x:Reference Page}, Path=OpenFileCommand, x:DataType=views:MainPage}"
+                                                               CommandParameter="{Binding .}"
+                                                               LongPressCommand="{Binding Source={x:Reference Page}, Path=FileActionsCommand, x:DataType=views:MainPage}"
+                                                               LongPressCommandParameter="{Binding .}" />
+                                    </Grid.Behaviors>
                                     <FlyoutBase.ContextFlyout>
                                         <MenuFlyout>
                                             <MenuFlyoutItem Text="Discard changes…" Clicked="OnDiscardFile" />
@@ -372,6 +399,13 @@
                     <CollectionView.ItemTemplate>
                         <DataTemplate x:DataType="git:CommitInfo">
                             <Grid RowDefinitions="Auto,Auto" ColumnDefinitions="*,Auto,Auto" Padding="12,8" RowSpacing="2" ColumnSpacing="6">
+                                <Grid.Behaviors>
+                                    <toolkit:TouchBehavior IsEnabled="{OnPlatform Default=False, Android=True, iOS=True}"
+                                                           Command="{Binding Source={x:Reference Page}, Path=OpenCommitCommand, x:DataType=views:MainPage}"
+                                                           CommandParameter="{Binding .}"
+                                                           LongPressCommand="{Binding Source={x:Reference Page}, Path=CommitActionsCommand, x:DataType=views:MainPage}"
+                                                           LongPressCommandParameter="{Binding .}" />
+                                </Grid.Behaviors>
                                 <FlyoutBase.ContextFlyout>
                                     <MenuFlyout>
                                         <MenuFlyoutItem Text="Amend commit…" Clicked="OnAmendCommit" />
@@ -434,10 +468,12 @@
                                 </MenuFlyout>
                             </FlyoutBase.ContextFlyout>
                         </Label>
-                        <Label Grid.Column="1" Text="Click the gutter to include or exclude lines" Style="{StaticResource SecondaryText}" VerticalOptions="Center"
-                               IsVisible="{Binding IsChangeText}" />
+                        <ContentView Grid.Column="1" IsVisible="{Binding IsWide}">
+                            <Label Text="Click the gutter to include or exclude lines" Style="{StaticResource SecondaryText}" VerticalOptions="Center"
+                                   IsVisible="{Binding IsChangeText}" />
+                        </ContentView>
                         <Button Grid.Column="2" Text="{Binding DiffExpandText}" Command="{Binding ToggleDiffExpandedCommand}"
-                                Style="{StaticResource SecondaryButton}" Padding="10,2" FontSize="12"
+                                Style="{StaticResource SecondaryButton}" Padding="10,2" FontSize="12" IsVisible="{Binding IsWide}"
                                 ToolTipProperties.Text="Show the diff across the full width (toggle)" />
                     </Grid>
                     <BoxView Grid.Row="1" Style="{StaticResource Separator}" />
@@ -491,7 +527,7 @@
                     </VerticalStackLayout>
                     <Button Grid.Column="1" Text="{Binding DiffExpandText}" Command="{Binding ToggleDiffExpandedCommand}"
                             Style="{StaticResource SecondaryButton}" Padding="10,2" FontSize="12" VerticalOptions="Start"
-                            ToolTipProperties.Text="Show the diff across the full width (toggle)" />
+                            IsVisible="{Binding IsWide}" ToolTipProperties.Text="Show the diff across the full width (toggle)" />
                 </Grid>
                 <BoxView Grid.Row="1" Style="{StaticResource Separator}" />
 
@@ -501,6 +537,13 @@
                         <CollectionView.ItemTemplate>
                             <DataTemplate x:DataType="git:FileChange">
                                 <Grid ColumnDefinitions="*,Auto" Padding="10,6" ColumnSpacing="6" BackgroundColor="Transparent">
+                                    <Grid.Behaviors>
+                                        <toolkit:TouchBehavior IsEnabled="{OnPlatform Default=False, Android=True, iOS=True}"
+                                                               Command="{Binding Source={x:Reference Page}, Path=OpenCommitFileCommand, x:DataType=views:MainPage}"
+                                                               CommandParameter="{Binding .}"
+                                                               LongPressCommand="{Binding Source={x:Reference Page}, Path=CommitFileActionsCommand, x:DataType=views:MainPage}"
+                                                               LongPressCommandParameter="{Binding .}" />
+                                    </Grid.Behaviors>
                                     <FlyoutBase.ContextFlyout>
                                         <MenuFlyout>
                                             <MenuFlyoutItem Text="{OnPlatform Default='Show in Explorer', MacCatalyst='Show in Finder'}" Clicked="OnShowCommitFileInFolder" />
@@ -536,11 +579,11 @@
         </Grid>
 
         <!-- ── Status bar ──────────────────────────────────────────────────── -->
-        <Label Grid.Row="3" Text="{Binding StatusMessage}" IsVisible="{Binding StatusMessage, Converter={StaticResource IsNotNullOrEmpty}}"
+        <Label Grid.Row="4" Text="{Binding StatusMessage}" IsVisible="{Binding StatusMessage, Converter={StaticResource IsNotNullOrEmpty}}"
                Padding="12,4" FontSize="12" LineBreakMode="TailTruncation"
                BackgroundColor="{AppThemeBinding Light={StaticResource BannerLight}, Dark={StaticResource BannerDark}}" />
 
         <!-- ── Repository / branch dropdowns, over everything while open ───── -->
-        <ContentView x:Name="DropdownLayer" Grid.RowSpan="4" IsVisible="False" />
+        <ContentView x:Name="DropdownLayer" Grid.RowSpan="5" IsVisible="False" />
     </Grid>
 </ContentPage>
