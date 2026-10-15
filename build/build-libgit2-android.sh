@@ -7,7 +7,7 @@
 # Needs the Android NDK (ANDROID_NDK_HOME or ANDROID_NDK_ROOT), CMake and Ninja on PATH, curl and tar. Runs in Git Bash on
 # Windows as well as on Linux and macOS.
 #
-# The libgit2 commit must be the one the LibGit2Sharp version in GitLabDesktop.csproj was built against (its
+# The libgit2 commit must be the one the LibGit2Sharp version in CommitDesk.csproj was built against (its
 # LibGit2Sharp.NativeBinaries package names it in libgit2/libgit2_hash.txt), or the managed calls won't match.
 set -euo pipefail
 

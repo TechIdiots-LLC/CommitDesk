@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:services="clr-namespace:CommitDesk.Services"
+             x:Class="CommitDesk.Views.PickerPage"
+             x:Name="Root"
+             BackgroundColor="{AppThemeBinding Light={StaticResource PaneLight}, Dark={StaticResource PaneDark}}">
+
+    <Grid RowDefinitions="Auto,Auto,*,Auto" Padding="16" RowSpacing="10" MaximumWidthRequest="640">
+        <Label x:Name="TitleLabel" Style="{StaticResource DialogTitle}" />
+        <SearchBar x:Name="Search" Grid.Row="1" Placeholder="Filter" TextChanged="OnSearchChanged" />
+
+        <CollectionView x:Name="List" Grid.Row="2" SelectionMode="Single" SelectionChanged="OnSelected">
+            <CollectionView.EmptyView>
+                <Label x:Name="EmptyLabel" Text="Nothing to show" HorizontalOptions="Center" Margin="0,24"
+                       TextColor="{AppThemeBinding Light={StaticResource TextSecondaryLight}, Dark={StaticResource TextSecondaryDark}}" />
+            </CollectionView.EmptyView>
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="services:PickerItem">
+                    <Grid ColumnDefinitions="*,Auto" Padding="10,8">
+                        <VerticalStackLayout>
+                            <Label Text="{Binding Title}" FontAttributes="Bold" LineBreakMode="TailTruncation" />
+                            <Label Text="{Binding Subtitle}" FontSize="12" LineBreakMode="TailTruncation"
+                                   IsVisible="{Binding Subtitle, Converter={StaticResource IsNotNullOrEmpty}}"
+                                   TextColor="{AppThemeBinding Light={StaticResource TextSecondaryLight}, Dark={StaticResource TextSecondaryDark}}" />
+                        </VerticalStackLayout>
+                        <Label Grid.Column="1" Text="{Binding Badge}" FontSize="12" VerticalOptions="Center"
+                               IsVisible="{Binding Badge, Converter={StaticResource IsNotNullOrEmpty}}"
+                               TextColor="{AppThemeBinding Light={StaticResource TextSecondaryLight}, Dark={StaticResource TextSecondaryDark}}" />
+                    </Grid>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+
+        <Button Grid.Row="3" Text="Cancel" HorizontalOptions="End" Clicked="OnCancel" Style="{StaticResource SecondaryButton}" />
+    </Grid>
+</ContentPage>

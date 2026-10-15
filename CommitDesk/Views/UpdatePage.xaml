@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="CommitDesk.Views.UpdatePage"
+             BackgroundColor="{AppThemeBinding Light={StaticResource PaneLight}, Dark={StaticResource PaneDark}}">
+
+    <Grid RowDefinitions="Auto,Auto,Auto,*,Auto,Auto,Auto" Padding="24" RowSpacing="8" MaximumWidthRequest="720">
+
+        <Label x:Name="HeadingLabel" Grid.Row="0" Style="{StaticResource DialogTitle}" />
+        <Label x:Name="VersionLabel" Grid.Row="1" />
+
+        <Label Grid.Row="2" Text="Release notes" Style="{StaticResource SectionHeader}" Margin="0,8,0,0" />
+        <Border Grid.Row="3" Padding="12" StrokeShape="RoundRectangle 6"
+                Stroke="{AppThemeBinding Light={StaticResource BorderLight}, Dark={StaticResource BorderDark}}"
+                BackgroundColor="{AppThemeBinding Light={StaticResource PageLight}, Dark={StaticResource PageDark}}">
+            <ScrollView>
+                <Label x:Name="NotesLabel" FontSize="13" />
+            </ScrollView>
+        </Border>
+
+        <Label x:Name="InfoLabel" Grid.Row="4" Style="{StaticResource SecondaryText}" FontSize="13" />
+
+        <VerticalStackLayout x:Name="ProgressPanel" Grid.Row="5" Spacing="4" IsVisible="False">
+            <Label x:Name="StatusLabel" FontSize="13" />
+            <ProgressBar x:Name="DownloadProgress" />
+        </VerticalStackLayout>
+
+        <Grid Grid.Row="6" ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="8" Margin="0,8,0,0">
+            <Button x:Name="ReleasePageButton" Text="Release page" Style="{StaticResource SecondaryButton}" Clicked="OnReleasePageClicked" />
+            <Button x:Name="SkipButton" Grid.Column="1" Text="Skip this version" HorizontalOptions="Start"
+                    Style="{StaticResource SecondaryButton}" Clicked="OnSkipClicked"
+                    ToolTipProperties.Text="Don't offer this version at startup again; newer versions are still offered" />
+            <Button x:Name="LaterButton" Grid.Column="2" Text="Later" Style="{StaticResource SecondaryButton}" Clicked="OnLaterClicked" />
+            <Button x:Name="PrimaryButton" Grid.Column="3" FontAttributes="Bold" Clicked="OnPrimaryClicked" />
+        </Grid>
+    </Grid>
+</ContentPage>

@@ -16,6 +16,11 @@
 ; In-app updates run this installer as: setup.exe /UPDATE /D=<install folder>. Update mode shows only the progress page
 ; ("Updating ..."): it waits there for the app to exit, replaces its files, closes by itself and starts the app again.
 ; Versions up to 0.4.0 also pass /S, which runs the same update with no window.
+;
+; The app was called GitLab Desktop up to 0.6.x. Installing over it (or an in-app update from it, which passes the old
+; folder in /D=) moves to the CommitDesk folder: the old version's uninstaller removes its files, shortcuts, Apps &
+; Features entry and link registration first. Settings and saved sign-ins are in the user's profile; the app copies
+; them over on its first start.
 
 Unicode true
 ManifestDPIAware true
@@ -40,6 +45,9 @@ ManifestDPIAware true
 !insertmacro RequireDefine OUTFILE
 
 !define UNINST_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APP_NAME}"
+!define LEGACY_NAME "GitLab Desktop"
+!define LEGACY_EXE "GitLabDesktop.exe"
+!define LEGACY_UNINST_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\${LEGACY_NAME}"
 
 Name "${APP_NAME} ${VERSION}"
 OutFile "${OUTFILE}"
@@ -68,6 +76,7 @@ VIAddVersionKey "LegalCopyright" "${PUBLISHER}"
 
 ; An in-app update shows only the progress page
 Var IsUpdate
+Var LegacyDir
 !define MUI_PAGE_CUSTOMFUNCTION_PRE SkipWhenUpdating
 !insertmacro MUI_PAGE_WELCOME
 !define MUI_PAGE_CUSTOMFUNCTION_PRE SkipWhenUpdating
@@ -100,6 +109,14 @@ Function .onInit
       Abort
     ${EndIf}
   !endif
+
+  ; An install of the app under its old name: take it over. An update started by it names the old folder in /D=; the
+  ; old default folder becomes the new default, a folder the user chose stays.
+  ReadRegStr $LegacyDir HKLM "${LEGACY_UNINST_KEY}" "InstallLocation"
+  ${If} $LegacyDir != ""
+  ${AndIf} $INSTDIR == "$PROGRAMFILES64\${LEGACY_NAME}"
+    StrCpy $INSTDIR "$PROGRAMFILES64\${APP_NAME}"
+  ${EndIf}
 
   ; Upgrade in place. InstallDirRegKey can't do this: it reads the 32-bit registry view, and the install location is
   ; written to the 64-bit one. An explicit /D= other than the default still wins.
@@ -175,6 +192,32 @@ Section "${APP_NAME} (required)" SecApp
     DetailPrint "Updating ${APP_NAME} to version ${VERSION}..."
   ${EndIf}
 
+  ; The old GitLab Desktop: wait for it to close, then let its uninstaller remove everything it installed and registered
+  ${If} $LegacyDir != ""
+    DetailPrint "Removing ${LEGACY_NAME}..."
+    StrCpy $R2 0
+    ${DoWhile} ${FileExists} "$LegacyDir\${LEGACY_EXE}"
+      ClearErrors
+      FileOpen $R3 "$LegacyDir\${LEGACY_EXE}" a
+      ${IfNot} ${Errors}
+        FileClose $R3
+        ${ExitDo}
+      ${EndIf}
+      ${If} $R2 >= 60
+        MessageBox MB_ICONSTOP "${LEGACY_NAME} is still running. Close it, then run this installer again." /SD IDOK
+        Abort
+      ${EndIf}
+      IntOp $R2 $R2 + 1
+      Sleep 500
+    ${Loop}
+    ${If} ${FileExists} "$LegacyDir\uninstall.exe"
+      ExecWait '"$LegacyDir\uninstall.exe" /S _?=$LegacyDir'
+      Delete "$LegacyDir\uninstall.exe"
+    ${EndIf}
+    DeleteRegKey HKLM "${LEGACY_UNINST_KEY}"
+    RMDir "$LegacyDir"   ; only when empty: never files the user put there
+  ${EndIf}
+
   ; Upgrade: let the installed version remove its own files first. /UPGRADE keeps its shortcuts and registration.
   IfFileExists "$INSTDIR\uninstall.exe" 0 +3
     ExecWait '"$INSTDIR\uninstall.exe" /S /UPGRADE _?=$INSTDIR'
@@ -223,20 +266,20 @@ Section "Uninstall"
     DeleteRegKey HKLM "${UNINST_KEY}"
     ; The GitHub-link registration made from Options (Services/LinkHandlerRegistration.cs): only what the app wrote,
     ; so another app's handler for these links (e.g. GitHub Desktop's) is left alone
-    DeleteRegKey HKCU "Software\Classes\GitLabDesktop.Link"
-    DeleteRegKey HKCU "Software\TechIdiots\GitLab Desktop"
+    DeleteRegKey HKCU "Software\Classes\CommitDesk.Link"
+    DeleteRegKey HKCU "Software\TechIdiots\CommitDesk"
     DeleteRegKey /ifempty HKCU "Software\TechIdiots"
-    DeleteRegValue HKCU "Software\RegisteredApplications" "GitLab Desktop"
-    ReadRegStr $R2 HKCU "Software\Classes\gitlab-desktop" "GitLabDesktop"
+    DeleteRegValue HKCU "Software\RegisteredApplications" "CommitDesk"
+    ReadRegStr $R2 HKCU "Software\Classes\commitdesk" "CommitDesk"
     ${If} $R2 != ""
-      DeleteRegKey HKCU "Software\Classes\gitlab-desktop"
+      DeleteRegKey HKCU "Software\Classes\commitdesk"
     ${EndIf}
-    ReadRegStr $R2 HKCU "Software\Classes\x-github-client" "GitLabDesktop"
+    ReadRegStr $R2 HKCU "Software\Classes\x-github-client" "CommitDesk"
     ${If} $R2 != ""
       DeleteRegKey HKCU "Software\Classes\x-github-client"
     ${EndIf}
     ReadRegStr $R2 HKCU "Software\Microsoft\Windows\Shell\Associations\UrlAssociations\x-github-client\UserChoice" "ProgId"
-    ${If} $R2 == "GitLabDesktop.Link"
+    ${If} $R2 == "CommitDesk.Link"
       DeleteRegKey HKCU "Software\Microsoft\Windows\Shell\Associations\UrlAssociations\x-github-client\UserChoice"
     ${EndIf}
     System::Call 'shell32::SHChangeNotify(i 0x08000000, i 0, p 0, p 0)'

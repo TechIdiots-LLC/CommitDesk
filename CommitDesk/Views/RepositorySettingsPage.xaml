@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:CommitDesk.ViewModels"
+             x:Class="CommitDesk.Views.RepositorySettingsPage"
+             x:DataType="vm:RepositorySettingsViewModel"
+             BackgroundColor="{AppThemeBinding Light={StaticResource PaneLight}, Dark={StaticResource PaneDark}}">
+
+    <ContentPage.Resources>
+        <!-- A section button: highlighted while its section is showing -->
+        <Style x:Key="SectionButton" TargetType="Button" BasedOn="{StaticResource SecondaryButton}">
+            <Setter Property="HorizontalOptions" Value="Fill" />
+            <Setter Property="Padding" Value="12,8" />
+            <Setter Property="BackgroundColor" Value="Transparent" />
+        </Style>
+    </ContentPage.Resources>
+
+    <Grid RowDefinitions="Auto,*,Auto,Auto" Padding="24" RowSpacing="12" MaximumWidthRequest="860">
+        <Label Text="Repository settings" Style="{StaticResource DialogTitle}" />
+
+        <Grid Grid.Row="1" ColumnDefinitions="180,*" ColumnSpacing="24">
+            <VerticalStackLayout Spacing="4">
+                <Button Text="Remote" Style="{StaticResource SectionButton}" Command="{Binding ShowSectionCommand}" CommandParameter="0">
+                    <Button.Triggers>
+                        <DataTrigger TargetType="Button" Binding="{Binding IsRemoteSection}" Value="True">
+                            <Setter Property="BackgroundColor" Value="{StaticResource Primary}" />
+                            <Setter Property="TextColor" Value="White" />
+                        </DataTrigger>
+                    </Button.Triggers>
+                </Button>
+                <Button Text="Ignored files" Style="{StaticResource SectionButton}" Command="{Binding ShowSectionCommand}" CommandParameter="1">
+                    <Button.Triggers>
+                        <DataTrigger TargetType="Button" Binding="{Binding IsIgnoreSection}" Value="True">
+                            <Setter Property="BackgroundColor" Value="{StaticResource Primary}" />
+                            <Setter Property="TextColor" Value="White" />
+                        </DataTrigger>
+                    </Button.Triggers>
+                </Button>
+                <Button Text="Git config" Style="{StaticResource SectionButton}" Command="{Binding ShowSectionCommand}" CommandParameter="2">
+                    <Button.Triggers>
+                        <DataTrigger TargetType="Button" Binding="{Binding IsConfigSection}" Value="True">
+                            <Setter Property="BackgroundColor" Value="{StaticResource Primary}" />
+                            <Setter Property="TextColor" Value="White" />
+                        </DataTrigger>
+                    </Button.Triggers>
+                </Button>
+            </VerticalStackLayout>
+
+            <!-- Remote -->
+            <VerticalStackLayout Grid.Column="1" Spacing="8" IsVisible="{Binding IsRemoteSection}">
+                <Label Text="{Binding RemoteLabel}" FontAttributes="Bold" />
+                <Entry Text="{Binding RemoteUrl}" Placeholder="https://gitlab.example.com/group/project.git" Keyboard="Url" />
+                <Label Style="{StaticResource SecondaryText}"
+                       Text="Where Push, Pull and Fetch go, and which project the GitLab or GitHub links and merge/pull requests are for." />
+            </VerticalStackLayout>
+
+            <!-- Ignored files -->
+            <Grid Grid.Column="1" RowDefinitions="Auto,*" RowSpacing="8" IsVisible="{Binding IsIgnoreSection}">
+                <Label Style="{StaticResource SecondaryText}"
+                       Text="Editing .gitignore. This file lists files and folders git should leave out, one pattern per line (for example bin/ or *.log). Files git already tracks aren't affected." />
+                <Editor Grid.Row="1" Text="{Binding GitIgnore}" FontFamily="{StaticResource MonoFont}" FontSize="13"
+                        MinimumHeightRequest="240" />
+            </Grid>
+
+            <!-- Git config -->
+            <VerticalStackLayout Grid.Column="1" Spacing="8" IsVisible="{Binding IsConfigSection}">
+                <Label Text="For this repository I wish to" FontAttributes="Bold" />
+                <RadioButton Content="Use my global Git config" IsChecked="{Binding UseGlobalConfig}" GroupName="config" />
+                <RadioButton Content="Use a local Git config" IsChecked="{Binding UseLocalConfig}" GroupName="config" />
+                <Label Text="Name" Style="{StaticResource SecondaryText}" Margin="0,8,0,0" />
+                <Entry Text="{Binding UserName}" IsEnabled="{Binding UseLocalConfig}" Placeholder="Your Name" />
+                <Label Text="Email" Style="{StaticResource SecondaryText}" />
+                <Entry Text="{Binding Email}" IsEnabled="{Binding UseLocalConfig}" Placeholder="you@example.com" Keyboard="Email" />
+                <Label Style="{StaticResource SecondaryText}"
+                       Text="The name and email recorded on your commits. A local config applies to this repository only, for example a work email on a work project." />
+            </VerticalStackLayout>
+        </Grid>
+
+        <Label Grid.Row="2" Text="{Binding Error}" TextColor="{StaticResource KindDeleted}"
+               IsVisible="{Binding Error, Converter={StaticResource IsNotNullOrEmpty}}" />
+
+        <HorizontalStackLayout Grid.Row="3" HorizontalOptions="End" Spacing="8">
+            <Button Text="Cancel" Command="{Binding CloseCommand}" Style="{StaticResource SecondaryButton}" />
+            <Button Text="Save" Command="{Binding SaveCommand}" FontAttributes="Bold" />
+        </HorizontalStackLayout>
+    </Grid>
+</ContentPage>

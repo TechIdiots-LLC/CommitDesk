@@ -26,7 +26,7 @@ jobs:
       - name: Build the label
         id: label
         run: |
-          VERSION=$(grep -oP '<ApplicationDisplayVersion>\K[^<]+' GitLabDesktop/GitLabDesktop.csproj | head -1)
+          VERSION=$(grep -oP '<ApplicationDisplayVersion>\K[^<]+' CommitDesk/CommitDesk.csproj | head -1)
           LABEL="v${VERSION}-ci${{ github.run_number }}-$(git rev-parse --short HEAD)"
           echo "label=$LABEL" >> "$GITHUB_OUTPUT"
           echo "Artifact label: $LABEL"
@@ -45,14 +45,14 @@ jobs:
           dotnet-version: '10.0.x'
 
       - name: Run tests
-        run: dotnet test GitLabDesktop.Core.Tests/GitLabDesktop.Core.Tests.csproj -c Release --logger "trx;LogFileName=test-results.trx"
+        run: dotnet test CommitDesk.Core.Tests/CommitDesk.Core.Tests.csproj -c Release --logger "trx;LogFileName=test-results.trx"
 
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v7
         with:
           name: test-results
-          path: GitLabDesktop.Core.Tests/TestResults/*.trx
+          path: CommitDesk.Core.Tests/TestResults/*.trx
           retention-days: 7
 
   build-windows:
@@ -73,7 +73,7 @@ jobs:
           dotnet-version: '10.0.x'
 
       - name: Restore workloads
-        run: dotnet workload restore GitLabDesktop.sln
+        run: dotnet workload restore CommitDesk.sln
 
       - name: Publish ${{ matrix.rid }}
         # Same switches as release.yml, so a publish-only failure surfaces on a PR rather than during a release.
@@ -83,7 +83,7 @@ jobs:
         # Self-contained .NET and Windows App SDK, so the artifact runs with nothing pre-installed. No PublishSingleFile:
         # WinUI 3 doesn't support it, so the output is a folder, zipped below.
         run: |
-          dotnet publish GitLabDesktop/GitLabDesktop.csproj `
+          dotnet publish CommitDesk/CommitDesk.csproj `
             -f net10.0-windows10.0.19041.0 `
             -c Release `
             -r ${{ matrix.rid }} `
@@ -98,13 +98,13 @@ jobs:
         run: |
           Compress-Archive `
             -Path "./publish/${{ matrix.rid }}/*" `
-            -DestinationPath "./GitLabDesktop-${{ needs.label.outputs.label }}-${{ matrix.rid }}.zip"
+            -DestinationPath "./CommitDesk-${{ needs.label.outputs.label }}-${{ matrix.rid }}.zip"
 
       - name: Upload ${{ matrix.rid }} app
         uses: actions/upload-artifact@v7
         with:
           name: ci-app-windows-${{ matrix.rid }}
-          path: GitLabDesktop-${{ needs.label.outputs.label }}-${{ matrix.rid }}.zip
+          path: CommitDesk-${{ needs.label.outputs.label }}-${{ matrix.rid }}.zip
           retention-days: 7
 
   build-android:
@@ -121,10 +121,10 @@ jobs:
           dotnet-version: '10.0.x'
 
       - name: Restore workloads
-        run: dotnet workload restore GitLabDesktop.sln
+        run: dotnet workload restore CommitDesk.sln
 
       - name: Restore dependencies
-        run: dotnet restore GitLabDesktop.sln
+        run: dotnet restore CommitDesk.sln
 
       - name: Publish Android APK (universal)
         # Not signed with the release keystore: secrets are unavailable to pull requests from forks, and a CI build
@@ -132,7 +132,7 @@ jobs:
         # this APK installs on a clean device but won't upgrade over a release install.
         # No -r: the csproj's <RuntimeIdentifiers> make one universal APK (arm64-v8a + x86_64).
         run: |
-          dotnet publish GitLabDesktop/GitLabDesktop.csproj `
+          dotnet publish CommitDesk/CommitDesk.csproj `
             -f net10.0-android36.0 `
             -c Release `
             --output ./publish/android
@@ -145,13 +145,13 @@ jobs:
             $apk = Get-ChildItem -Path "./publish/android" -Filter "*.apk" -Recurse | Select-Object -First 1
           }
           if (-not $apk) { throw "No APK found under ./publish/android" }
-          Copy-Item $apk.FullName -Destination "./GitLabDesktop-${{ needs.label.outputs.label }}-android-debug-signed.apk"
+          Copy-Item $apk.FullName -Destination "./CommitDesk-${{ needs.label.outputs.label }}-android-debug-signed.apk"
 
       - name: Upload Android APK
         uses: actions/upload-artifact@v7
         with:
           name: ci-app-android
-          path: GitLabDesktop-${{ needs.label.outputs.label }}-android-debug-signed.apk
+          path: CommitDesk-${{ needs.label.outputs.label }}-android-debug-signed.apk
           retention-days: 7
 
   build-macos:
@@ -172,7 +172,7 @@ jobs:
         # Pinned workload set: 10.0.401.1 moved the Apple SDKs to 27.0, which require Xcode 27, and GitHub only has
         # Xcode 27 as a beta (the xcode-27 preview image). 10.0.401 builds with Xcode 26.6. Drop the pin (and the
         # SDK band above) once macos-26 ships a stable Xcode 27. The version must match the SDK band (10.0.4xx).
-        run: dotnet workload restore GitLabDesktop.sln --version 10.0.401
+        run: dotnet workload restore CommitDesk.sln --version 10.0.401
 
       # Pick the newest stable Xcode rather than pinning one: the .NET Apple SDKs raise their minimum Xcode as they
       # update. Only real app bundles that carry the macOS SDK; the image's X.Y.0 symlinks leave xcodebuild unable to
@@ -199,5 +199,5 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: ci-app-macos
-          path: GitLabDesktop-${{ needs.label.outputs.label }}-macos.dmg
+          path: CommitDesk-${{ needs.label.outputs.label }}-macos.dmg
           retention-days: 7

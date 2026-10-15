@@ -13,8 +13,8 @@ set -euo pipefail
 
 LABEL="$1"
 OUT_DIR="$2"
-PROJECT=GitLabDesktop/GitLabDesktop.csproj
-VOLUME_NAME="GitLab Desktop"
+PROJECT=CommitDesk/CommitDesk.csproj
+VOLUME_NAME="CommitDesk"
 
 # Report the command that failed as a "::error::" line. GitHub Actions turns these into annotations, which can be read
 # without signing in (job logs can't); elsewhere it is just a log line.
@@ -42,7 +42,7 @@ if ! dotnet build "$PROJECT" -f net10.0-maccatalyst -c Release -p:EnableWindowsT
   exit 1
 fi
 
-BASE=GitLabDesktop/bin/Release/net10.0-maccatalyst
+BASE=CommitDesk/bin/Release/net10.0-maccatalyst
 # Prefer the bundle directly in the output folder (the universal app); only search deeper if it isn't there.
 APP=$(find "$BASE" -maxdepth 1 -name '*.app' -type d | head -1)
 [ -z "$APP" ] && APP=$(find "$BASE" -maxdepth 2 -name '*.app' -type d | head -1)
@@ -59,7 +59,7 @@ if [ -z "${MACOS_SIGNING_IDENTITY:-}" ]; then
 fi
 
 mkdir -p "$OUT_DIR"
-DMG="$OUT_DIR/GitLabDesktop-$LABEL-macos.dmg"
+DMG="$OUT_DIR/CommitDesk-$LABEL-macos.dmg"
 STAGING=$(mktemp -d)
 trap 'rm -rf "$STAGING"' EXIT
 ditto "$APP" "$STAGING/$(basename "$APP")"

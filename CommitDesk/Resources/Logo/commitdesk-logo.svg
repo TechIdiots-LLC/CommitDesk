@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- CommitDesk logo: a gear in the app's blue/green gradient around a commit graph (a branch that splits off and merges
+     back). The source of the app icons, splash screen and welcome logo: build/Render-Logo.ps1 renders them. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="body" gradientUnits="userSpaceOnUse" x1="60" y1="60" x2="452" y2="452">
+      <stop offset="0" stop-color="#8EE04F"/>
+      <stop offset="0.55" stop-color="#3FB59A"/>
+      <stop offset="1" stop-color="#2A86D6"/>
+    </linearGradient>
+    <!-- The gear: a ring with eight teeth (plain shapes, so it can also be the clip path below) -->
+    <g id="gear">
+      <circle cx="256" cy="256" r="196"/>
+      <rect x="210" y="34" width="92" height="100" rx="22" transform="rotate(0 256 256)"/>
+      <rect x="210" y="34" width="92" height="100" rx="22" transform="rotate(45 256 256)"/>
+      <rect x="210" y="34" width="92" height="100" rx="22" transform="rotate(90 256 256)"/>
+      <rect x="210" y="34" width="92" height="100" rx="22" transform="rotate(135 256 256)"/>
+      <rect x="210" y="34" width="92" height="100" rx="22" transform="rotate(180 256 256)"/>
+      <rect x="210" y="34" width="92" height="100" rx="22" transform="rotate(225 256 256)"/>
+      <rect x="210" y="34" width="92" height="100" rx="22" transform="rotate(270 256 256)"/>
+      <rect x="210" y="34" width="92" height="100" rx="22" transform="rotate(315 256 256)"/>
+    </g>
+    <!-- One gradient across the whole gear, clipped to its shape (rotated teeth filled one by one would each read the
+         gradient in their own rotated coordinates) -->
+    <clipPath id="gear-clip">
+      <circle cx="256" cy="256" r="196"/>
+      <rect x="210" y="34" width="92" height="100" rx="22" transform="rotate(0 256 256)"/>
+      <rect x="210" y="34" width="92" height="100" rx="22" transform="rotate(45 256 256)"/>
+      <rect x="210" y="34" width="92" height="100" rx="22" transform="rotate(90 256 256)"/>
+      <rect x="210" y="34" width="92" height="100" rx="22" transform="rotate(135 256 256)"/>
+      <rect x="210" y="34" width="92" height="100" rx="22" transform="rotate(180 256 256)"/>
+      <rect x="210" y="34" width="92" height="100" rx="22" transform="rotate(225 256 256)"/>
+      <rect x="210" y="34" width="92" height="100" rx="22" transform="rotate(270 256 256)"/>
+      <rect x="210" y="34" width="92" height="100" rx="22" transform="rotate(315 256 256)"/>
+    </clipPath>
+  </defs>
+  <!-- Navy outline: the gear drawn with a wide stroke underneath, so the teeth and ring read as one shape -->
+  <use href="#gear" fill="#0F2D4A" stroke="#0F2D4A" stroke-width="26" stroke-linejoin="round"/>
+  <rect width="512" height="512" fill="url(#body)" clip-path="url(#gear-clip)"/>
+  <!-- Inner disc -->
+  <circle cx="256" cy="256" r="146" fill="#0F2D4A"/>
+  <circle cx="256" cy="256" r="146" fill="none" stroke="#8EE04F" stroke-width="9"/>
+  <!-- Commit graph: main line with three commits; a branch leaves the first and merges into the last -->
+  <g fill="none" stroke-linecap="round" stroke-width="16">
+    <path d="M230 170 V342" stroke="#E6F4FF"/>
+    <path d="M230 182 C230 226 304 214 304 256 C304 298 230 286 230 330" stroke="#4FB6F5"/>
+  </g>
+  <g stroke="#0F2D4A" stroke-width="7">
+    <circle cx="230" cy="182" r="20" fill="#8EE04F"/>
+    <circle cx="230" cy="256" r="20" fill="#8EE04F"/>
+    <circle cx="230" cy="330" r="20" fill="#8EE04F"/>
+    <circle cx="304" cy="256" r="20" fill="#4FB6F5"/>
+  </g>
+</svg>

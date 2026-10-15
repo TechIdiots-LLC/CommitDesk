@@ -3,7 +3,7 @@
 # <project>/-/releases/<tag>/downloads/<file>
 param(
     [Parameter(Mandatory)][string]$PackageName,
-    # Release title prefix, e.g. "GitLab Desktop" -> "GitLab Desktop v1.2.3". Defaults to the GitLab project name.
+    # Release title prefix, e.g. "CommitDesk" -> "CommitDesk v1.2.3". Defaults to the GitLab project name.
     [string]$ReleaseName = $env:CI_PROJECT_NAME,
     [string]$FilesDir = 'release-files'
 )

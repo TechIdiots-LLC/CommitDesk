@@ -2,8 +2,8 @@
 # Used by both the GitLab pipeline and the GitHub release workflow.
 #
 # Example:
-#   ./build/Build-Installer.ps1 -SourceDir publish/x64 -AppName "GitLab Desktop" -AppExe GitLabDesktop.exe `
-#       -Version 0.4.6 -Arch x64 -OutFile release-files/GitLabDesktop-v0.4.6-win-x64-setup.exe
+#   ./build/Build-Installer.ps1 -SourceDir publish/x64 -AppName "CommitDesk" -AppExe CommitDesk.exe `
+#       -Version 0.4.6 -Arch x64 -OutFile release-files/CommitDesk-v0.4.6-win-x64-setup.exe
 param(
     [Parameter(Mandatory)][string]$SourceDir,   # published app folder to install
     [Parameter(Mandatory)][string]$AppName,     # product name: install folder, shortcuts, Apps & Features

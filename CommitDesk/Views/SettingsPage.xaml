@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:CommitDesk.ViewModels"
+             x:Class="CommitDesk.Views.SettingsPage"
+             x:DataType="vm:SettingsViewModel"
+             BackgroundColor="{AppThemeBinding Light={StaticResource PaneLight}, Dark={StaticResource PaneDark}}">
+
+    <Grid RowDefinitions="*,Auto" MaximumWidthRequest="640" Padding="16">
+        <ScrollView>
+            <VerticalStackLayout Spacing="8">
+                <Label Text="Options" Style="{StaticResource DialogTitle}" Margin="0,0,0,8" />
+
+                <Label Text="Accounts" Style="{StaticResource SectionHeader}" />
+                <Label Style="{StaticResource SecondaryText}"
+                       Text="An account signs git in to its server over HTTPS. On a GitLab server or GitHub it also lets the app show and create merge/pull requests and CI status; without one, the app still opens pages in your browser. When git asks you to sign in, the account is added or updated here." />
+
+                <VerticalStackLayout Spacing="8" BindableLayout.ItemsSource="{Binding Accounts}">
+                    <BindableLayout.ItemTemplate>
+                        <DataTemplate x:DataType="vm:AccountViewModel">
+                            <Border Padding="12" StrokeShape="RoundRectangle 6"
+                                    Stroke="{AppThemeBinding Light={StaticResource BorderLight}, Dark={StaticResource BorderDark}}"
+                                    BackgroundColor="{AppThemeBinding Light={StaticResource PageLight}, Dark={StaticResource PageDark}}">
+                                <VerticalStackLayout Spacing="6">
+                                    <Grid ColumnDefinitions="*,Auto">
+                                        <Label Text="{Binding KindName}" FontAttributes="Bold" VerticalOptions="Center" />
+                                        <Button Grid.Column="1" Text="Remove" Command="{Binding RemoveCommand}" Style="{StaticResource SecondaryButton}" Padding="8,2" />
+                                    </Grid>
+                                    <Label Text="{Binding ScopeText}" IsVisible="{Binding HasScopeText}" LineBreakMode="MiddleTruncation" />
+
+                                    <Label Text="Server type" Style="{StaticResource SecondaryText}" IsVisible="{Binding CanChangeKind}" />
+                                    <Picker ItemsSource="{Binding ServerTypeNames}" SelectedIndex="{Binding ServerTypeIndex}"
+                                            IsVisible="{Binding CanChangeKind}" HorizontalOptions="Start" MinimumWidthRequest="220" />
+
+                                    <Label Text="Server URL" Style="{StaticResource SecondaryText}" IsVisible="{Binding IsEditableServer}" />
+                                    <Entry Text="{Binding BaseUrl}" Placeholder="{Binding ServerPlaceholder}" Keyboard="Url" IsVisible="{Binding IsEditableServer}" />
+
+                                    <Label Text="{Binding UserNameLabel}" Style="{StaticResource SecondaryText}" />
+                                    <Entry Text="{Binding UserName}" Placeholder="Username" />
+
+                                    <Label Text="{Binding SecretHelp}" Style="{StaticResource SecondaryText}" />
+                                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                                        <Entry Text="{Binding Secret}" IsPassword="True" Placeholder="Password or access token" />
+                                        <Button Grid.Column="1" Text="Create token…" Command="{Binding CreateTokenCommand}" IsVisible="{Binding CanCreateToken}"
+                                                Style="{StaticResource SecondaryButton}" />
+                                    </Grid>
+                                    <HorizontalStackLayout Spacing="10" IsVisible="{Binding UsesApi}">
+                                        <Button Text="Test connection" Command="{Binding TestCommand}" Style="{StaticResource SecondaryButton}" />
+                                        <ActivityIndicator IsRunning="{Binding IsTesting}" IsVisible="{Binding IsTesting}" HeightRequest="20" WidthRequest="20" />
+                                    </HorizontalStackLayout>
+                                    <Label Text="{Binding TestResult}" IsVisible="{Binding TestResult, Converter={StaticResource IsNotNullOrEmpty}}" />
+                                </VerticalStackLayout>
+                            </Border>
+                        </DataTemplate>
+                    </BindableLayout.ItemTemplate>
+                </VerticalStackLayout>
+
+                <HorizontalStackLayout Spacing="8">
+                    <Button Text="+ Add GitLab account" Command="{Binding AddGitLabAccountCommand}" Style="{StaticResource SecondaryButton}" />
+                    <Button Text="+ Add GitHub account" Command="{Binding AddGitHubAccountCommand}" IsVisible="{Binding CanAddGitHub}"
+                            Style="{StaticResource SecondaryButton}" />
+                    <Button Text="+ Add Git server account" Command="{Binding AddGitServerAccountCommand}"
+                            Style="{StaticResource SecondaryButton}" />
+                </HorizontalStackLayout>
+
+                <BoxView Style="{StaticResource Separator}" Margin="0,8" />
+
+                <Label Text="Repositories" Style="{StaticResource SectionHeader}" />
+                <Label Text="Repositories folder: where existing checkouts live, and the default location for clones and new repositories"
+                       Style="{StaticResource SecondaryText}" />
+                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                    <Entry Text="{Binding RepositoriesDirectory}" />
+                    <Button Grid.Column="1" Text="Browse…" Command="{Binding BrowseRepositoriesDirectoryCommand}" Style="{StaticResource SecondaryButton}" />
+                </Grid>
+                <!-- Wraps: the two folder paths can be wider than the dialog -->
+                <FlexLayout Wrap="Wrap">
+                    <Button Text="{Binding DefaultRepositoriesDirectory, StringFormat='Use default ({0})'}"
+                            Command="{Binding UseDefaultRepositoriesDirectoryCommand}" Style="{StaticResource SecondaryButton}" Margin="0,0,8,8" />
+                    <Button Text="{Binding GitHubDesktopFolder, StringFormat='Use GitHub Desktop folder ({0})'}"
+                            Command="{Binding UseGitHubDesktopFolderCommand}" IsVisible="{Binding HasGitHubDesktopFolder}"
+                            Style="{StaticResource SecondaryButton}" Margin="0,0,8,8" />
+                </FlexLayout>
+                <Label Text="{Binding FoundRepositoriesText}" Style="{StaticResource SecondaryText}"
+                       IsVisible="{Binding FoundRepositoriesText, Converter={StaticResource IsNotNullOrEmpty}}" />
+                <Grid ColumnDefinitions="Auto,*">
+                    <CheckBox IsChecked="{Binding AutoAddRepositories}" />
+                    <Label Grid.Column="1" VerticalOptions="Center"
+                           Text="Automatically add repositories found in this folder (and one level of subfolders) to the repository list" />
+                </Grid>
+                <Grid ColumnDefinitions="Auto,*">
+                    <CheckBox IsChecked="{Binding CloneWithSsh}" />
+                    <Label Grid.Column="1" Text="Clone with SSH instead of HTTPS" VerticalOptions="Center" />
+                </Grid>
+                <Grid ColumnDefinitions="Auto,*">
+                    <CheckBox IsChecked="{Binding RecurseSubmodules}" VerticalOptions="Start" />
+                    <VerticalStackLayout Grid.Column="1" VerticalOptions="Center">
+                        <Label Text="Include submodules" />
+                        <Label Style="{StaticResource SecondaryText}"
+                               Text="Clones include submodules by default, and switching branches or pulling updates them. This is git's own submodule.recurse setting, so git on the command line follows it too." />
+                    </VerticalStackLayout>
+                </Grid>
+                <Grid ColumnDefinitions="Auto,*" IsVisible="{Binding ShowLongPaths}">
+                    <CheckBox IsChecked="{Binding LongPaths}" VerticalOptions="Start" />
+                    <VerticalStackLayout Grid.Column="1" VerticalOptions="Center">
+                        <Label Text="Support long file paths" />
+                        <Label Style="{StaticResource SecondaryText}"
+                               Text="Lets git clone and check out repositories with paths longer than Windows' usual 260 characters. This is git's core.longpaths setting, so git on the command line follows it too." />
+                    </VerticalStackLayout>
+                </Grid>
+
+                <!-- Certificates: the Windows store for internal CAs, and per-server opt-outs for self-signed servers -->
+                <Label Text="Certificates" Style="{StaticResource SectionHeader}" Margin="0,8,0,0" />
+                <Grid ColumnDefinitions="Auto,*" IsVisible="{Binding ShowCertificateStore}">
+                    <CheckBox IsChecked="{Binding UseWindowsCertificateStore}" VerticalOptions="Start" />
+                    <VerticalStackLayout Grid.Column="1" VerticalOptions="Center">
+                        <Label Text="Use the Windows certificate store" />
+                        <Label Style="{StaticResource SecondaryText}"
+                               Text="Git checks HTTPS servers against the certificate authorities Windows trusts, like your browser does, including your organisation's own. Without it, Git for Windows uses its own list, and servers with an internal certificate fail with &quot;self-signed certificate in certificate chain&quot;. This is git's http.sslBackend setting (schannel), so git on the command line follows it too." />
+                    </VerticalStackLayout>
+                </Grid>
+                <Label Text="Servers whose certificates aren't checked" Margin="0,4,0,0" />
+                <Label Style="{StaticResource SecondaryText}"
+                       Text="For a server you trust with a self-signed certificate. Without the check, someone between you and the server could pretend to be it and see your sign-in and code, so add only servers you know, and prefer the option above when it works. Each applies to that server only (git's http.&lt;url&gt;.sslVerify setting)." />
+                <VerticalStackLayout Spacing="4" BindableLayout.ItemsSource="{Binding UntrustedServers}">
+                    <BindableLayout.ItemTemplate>
+                        <DataTemplate x:DataType="x:String">
+                            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                                <Label Text="{Binding .}" VerticalOptions="Center" />
+                                <Button Grid.Column="1" Text="Check again" Style="{StaticResource SecondaryButton}"
+                                        Command="{Binding RemoveUntrustedServerCommand, Source={RelativeSource AncestorType={x:Type vm:SettingsViewModel}}, x:DataType=vm:SettingsViewModel}"
+                                        CommandParameter="{Binding .}" />
+                            </Grid>
+                        </DataTemplate>
+                    </BindableLayout.ItemTemplate>
+                </VerticalStackLayout>
+                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                    <Entry Text="{Binding NewUntrustedServer}" Placeholder="git.example.com" />
+                    <Button Grid.Column="1" Text="Don't check this server…" Command="{Binding AddUntrustedServerCommand}"
+                            Style="{StaticResource SecondaryButton}" />
+                </Grid>
+
+                <!-- GitHub's "Open with GitHub Desktop" links (Windows): never taken over without the user choosing -->
+                <VerticalStackLayout Spacing="8" IsVisible="{Binding ShowLinkHandler}">
+                    <BoxView Style="{StaticResource Separator}" Margin="0,8" />
+                    <Label Text="Links from GitHub" Style="{StaticResource SectionHeader}" />
+                    <Label Style="{StaticResource SecondaryText}"
+                           Text="GitHub's &quot;Open with GitHub Desktop&quot; button opens a repository in your desktop git app. CommitDesk can open them instead: it opens the repository if you have it, or offers to clone it. Windows lets you choose which app opens these links." />
+                    <Label Text="{Binding LinkHandlerStatus}" />
+                    <FlexLayout Wrap="Wrap">
+                        <Button Text="Make CommitDesk the default…" Command="{Binding MakeLinkHandlerDefaultCommand}"
+                                Style="{StaticResource SecondaryButton}" Margin="0,0,8,8"
+                                IsVisible="{Binding IsLinkHandlerDefault, Converter={StaticResource InvertBool}}" />
+                        <Button Text="Stop opening these links" Command="{Binding StopHandlingLinksCommand}"
+                                Style="{StaticResource SecondaryButton}" Margin="0,0,8,8" IsVisible="{Binding IsLinkHandlerRegistered}" />
+                    </FlexLayout>
+                </VerticalStackLayout>
+
+                <BoxView Style="{StaticResource Separator}" Margin="0,8" />
+
+                <Label Text="Updates" Style="{StaticResource SectionHeader}" />
+                <Grid ColumnDefinitions="Auto,*" IsVisible="{Binding ShowUpdateOptions}">
+                    <CheckBox IsChecked="{Binding AutoCheckUpdates}" />
+                    <Label Grid.Column="1" Text="Check for a new version when the app starts" VerticalOptions="Center" />
+                </Grid>
+                <Grid ColumnDefinitions="Auto,*" IsVisible="{Binding ShowUpdateOptions}">
+                    <CheckBox IsChecked="{Binding IncludePrereleases}" />
+                    <Label Grid.Column="1" Text="Include pre-releases (e.g. 0.2.0-rc.1)" VerticalOptions="Center" />
+                </Grid>
+                <Label Text="{Binding CurrentVersionText}" Style="{StaticResource SecondaryText}" />
+
+                <BoxView Style="{StaticResource Separator}" Margin="0,8" />
+
+                <Label Text="Tools" Style="{StaticResource SectionHeader}" />
+                <Label Text="External editor command (receives the folder or file path)" Style="{StaticResource SecondaryText}" />
+                <Entry Text="{Binding EditorCommand}" Placeholder="code" />
+                <Label Text="Git executable" Style="{StaticResource SecondaryText}" />
+                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                    <Entry Text="{Binding GitExecutable}" Placeholder="git" />
+                    <Button Grid.Column="1" Text="Test git" Command="{Binding TestGitCommand}" Style="{StaticResource SecondaryButton}" />
+                </Grid>
+                <Label Text="{Binding GitTestResult}" IsVisible="{Binding GitTestResult, Converter={StaticResource IsNotNullOrEmpty}}" />
+            </VerticalStackLayout>
+        </ScrollView>
+
+        <Grid Grid.Row="1" ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8" Margin="0,12,0,0">
+            <Label Text="{Binding Error}" TextColor="{StaticResource KindDeleted}" VerticalOptions="Center"
+                   IsVisible="{Binding Error, Converter={StaticResource IsNotNullOrEmpty}}" />
+            <Button Grid.Column="1" Text="Cancel" Command="{Binding CloseCommand}" Style="{StaticResource SecondaryButton}" />
+            <Button Grid.Column="2" Text="Save" Command="{Binding SaveCommand}" />
+        </Grid>
+    </Grid>
+</ContentPage>

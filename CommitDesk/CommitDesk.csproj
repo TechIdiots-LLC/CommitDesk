@@ -1,0 +1,107 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net10.0-android36.0;net10.0-ios;net10.0-maccatalyst;net10.0-windows10.0.19041.0</TargetFrameworks>
+    <!--
+      Windows and macOS (Mac Catalyst) are the working desktop targets. Android/iOS build so the app stays
+      cross-platform, but local repository operations shell out to the git CLI, which mobile devices don't have;
+      a mobile git back-end is future work.
+    -->
+
+    <OutputType>Exe</OutputType>
+    <RootNamespace>CommitDesk</RootNamespace>
+    <UseMaui>true</UseMaui>
+    <SingleProject>true</SingleProject>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <!-- Field-style [ObservableProperty] (as in VistumblerMAUI); the app is not AOT-compiled for WinRT. -->
+    <NoWarn>$(NoWarn);MVVMTK0045</NoWarn>
+    <!-- Compile bindings that set Source (DiffView's x:Reference bindings declare their x:DataType) -->
+    <MauiEnableXamlCBindingWithSourceCompilation>true</MauiEnableXamlCBindingWithSourceCompilation>
+
+    <ApplicationTitle>CommitDesk</ApplicationTitle>
+    <ApplicationId>net.techidiots.commitdesk</ApplicationId>
+    <ApplicationDisplayVersion>0.6.1</ApplicationDisplayVersion>
+    <ApplicationVersion>20</ApplicationVersion>
+
+    <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">26.0</SupportedOSPlatformVersion>
+    <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios'">15.0</SupportedOSPlatformVersion>
+    <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'maccatalyst'">15.0</SupportedOSPlatformVersion>
+    <!-- One universal macOS app for Apple silicon and Intel Macs -->
+    <RuntimeIdentifiers Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'maccatalyst'">maccatalyst-arm64;maccatalyst-x64</RuntimeIdentifiers>
+    <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.19041.0</SupportedOSPlatformVersion>
+    <!-- Unpackaged Windows app — no Package.appxmanifest required -->
+    <WindowsPackageType Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">None</WindowsPackageType>
+    <!-- Platforms/Windows/Program.cs is the entry point: one running copy, later launches handed to it -->
+    <DefineConstants Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">$(DefineConstants);DISABLE_XAML_GENERATED_MAIN</DefineConstants>
+
+    <RuntimeIdentifiers Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">android-arm64;android-x64</RuntimeIdentifiers>
+  </PropertyGroup>
+
+  <!-- Google Play build (dotnet publish -f net10.0-android36.0 -c Release -p:PlayStore=true, as the publish-play jobs do):
+       Play delivers the updates and doesn't allow apps it installs to update themselves, so PLAY_STORE turns the in-app
+       updater off (Services/AppUpdater.cs). The APK on the GitLab/GitHub releases keeps it. -->
+  <PropertyGroup Condition="'$(PlayStore)' == 'true' And $([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">
+    <DefineConstants>$(DefineConstants);PLAY_STORE</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <AssemblyMetadata Include="DisplayVersion" Value="$(ApplicationDisplayVersion)" />
+  </ItemGroup>
+
+  <!-- Android has no git command line: libgit2 for LibGit2Sharp (see native/android/README.md) -->
+  <ItemGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">
+    <AndroidNativeLibrary Include="..\native\android\arm64-v8a\libgit2-5853918.so" Abi="arm64-v8a" />
+    <AndroidNativeLibrary Include="..\native\android\x86_64\libgit2-5853918.so" Abi="x86_64" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Maui.Controls" Version="10.0.90" />
+    <PackageReference Include="CommunityToolkit.Maui" Version="15.0.1" />
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
+    <PackageReference Include="Microsoft.Extensions.Http" Version="10.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\CommitDesk.Core\CommitDesk.Core.csproj" />
+  </ItemGroup>
+
+  <!--
+    App icon, rendered from Resources/Logo/commitdesk-logo.svg by build/Render-Logo.ps1 (which writes all the icon files
+    below). Both are named "appicon" so the generated files keep the names
+    the platforms look for (e.g. Android's @mipmap/appicon, which the manifest uses).
+    Desktop (Windows, macOS): the gear on a transparent background, so the icon is the gear's own shape.
+    Mobile (Android, iOS): those need an opaque square (Android masks it to a circle or squircle, iOS refuses
+    transparency), so the gear sits inside the safe zone on the logo's navy.
+  -->
+  <ItemGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows' Or $([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'maccatalyst'">
+    <MauiIcon Include="Resources\AppIcon\Desktop\appicon.png" />
+  </ItemGroup>
+
+  <!--
+    Windows: MAUI's generated appicon.ico holds a single 64 px image, which blurs in Explorer's large views and muddies
+    at 16 px. CommitDesk.ico has 16-256 px images; it is the exe's icon, the window/taskbar icon
+    (Platforms/Windows/WindowPlacement.cs) and the installer's icon (build/installer.nsi via CI).
+  -->
+  <PropertyGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">
+    <ApplicationIcon>Resources\AppIcon\Desktop\CommitDesk.ico</ApplicationIcon>
+  </PropertyGroup>
+  <ItemGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">
+    <Content Include="Resources\AppIcon\Desktop\CommitDesk.ico" Link="CommitDesk.ico" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+  <ItemGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android' Or $([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios'">
+    <MauiIcon Include="Resources\AppIcon\appicon.svg" ForegroundFile="Resources\AppIcon\appiconfg.png" ForegroundScale="0.62" Color="#0F2D4A" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <MauiSplashScreen Include="Resources\Splash\splash.png" Color="#0F2D4A" BaseSize="160,160" />
+    <MauiImage Include="Resources\Images\*" />
+    <!-- The logo on the welcome screen; the 512 px source covers up to 4x at this size -->
+    <MauiImage Update="Resources\Images\logo.png" BaseSize="128,128" />
+    <MauiFont Include="Resources\Fonts\*" />
+    <MauiAsset Include="Resources\Raw\**" LogicalName="%(RecursiveDir)%(Filename)%(Extension)" />
+  </ItemGroup>
+
+</Project>

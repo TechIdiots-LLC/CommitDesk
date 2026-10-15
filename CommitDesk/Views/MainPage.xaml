@@ -1,0 +1,537 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:CommitDesk.ViewModels"
+             xmlns:git="clr-namespace:CommitDesk.Core.Git;assembly=CommitDesk.Core"
+             xmlns:controls="clr-namespace:CommitDesk.Controls"
+             x:Class="CommitDesk.Views.MainPage"
+             x:DataType="vm:MainViewModel"
+             x:Name="Page"
+             Title="">
+
+    <!-- ── Menus (desktop) ─────────────────────────────────────────────────── -->
+    <ContentPage.MenuBarItems>
+        <MenuBarItem Text="File">
+            <MenuFlyoutItem Text="New repository…" Command="{Binding NewRepositoryCommand}">
+                <MenuFlyoutItem.KeyboardAccelerators><KeyboardAccelerator Modifiers="Ctrl" Key="N" /></MenuFlyoutItem.KeyboardAccelerators>
+            </MenuFlyoutItem>
+            <MenuFlyoutItem Text="Add local repository…" Command="{Binding AddLocalRepositoryCommand}">
+                <MenuFlyoutItem.KeyboardAccelerators><KeyboardAccelerator Modifiers="Ctrl" Key="O" /></MenuFlyoutItem.KeyboardAccelerators>
+            </MenuFlyoutItem>
+            <MenuFlyoutItem Text="Clone repository…" Command="{Binding CloneRepositoryCommand}">
+                <MenuFlyoutItem.KeyboardAccelerators><KeyboardAccelerator Modifiers="Ctrl,Shift" Key="O" /></MenuFlyoutItem.KeyboardAccelerators>
+            </MenuFlyoutItem>
+            <MenuFlyoutItem Text="Scan repositories folder" Command="{Binding ScanRepositoriesFolderCommand}" />
+            <MenuFlyoutSeparator />
+            <MenuFlyoutItem Text="Options…" Command="{Binding OptionsCommand}">
+                <MenuFlyoutItem.KeyboardAccelerators><KeyboardAccelerator Modifiers="Ctrl" Key="OemComma" /></MenuFlyoutItem.KeyboardAccelerators>
+            </MenuFlyoutItem>
+            <MenuFlyoutSeparator />
+            <MenuFlyoutItem Text="Exit" Command="{Binding ExitCommand}" />
+        </MenuBarItem>
+
+        <MenuBarItem Text="View">
+            <MenuFlyoutItem Text="Changes" Command="{Binding ShowChangesCommand}">
+                <MenuFlyoutItem.KeyboardAccelerators><KeyboardAccelerator Modifiers="Ctrl" Key="D1" /></MenuFlyoutItem.KeyboardAccelerators>
+            </MenuFlyoutItem>
+            <MenuFlyoutItem Text="History" Command="{Binding ShowHistoryCommand}">
+                <MenuFlyoutItem.KeyboardAccelerators><KeyboardAccelerator Modifiers="Ctrl" Key="D2" /></MenuFlyoutItem.KeyboardAccelerators>
+            </MenuFlyoutItem>
+            <MenuFlyoutItem Text="Repository list" Command="{Binding ChooseRepositoryCommand}">
+                <MenuFlyoutItem.KeyboardAccelerators><KeyboardAccelerator Modifiers="Ctrl" Key="T" /></MenuFlyoutItem.KeyboardAccelerators>
+            </MenuFlyoutItem>
+            <MenuFlyoutItem Text="Branches list" Command="{Binding ChooseBranchCommand}">
+                <MenuFlyoutItem.KeyboardAccelerators><KeyboardAccelerator Modifiers="Ctrl" Key="B" /></MenuFlyoutItem.KeyboardAccelerators>
+            </MenuFlyoutItem>
+            <MenuFlyoutSeparator />
+            <MenuFlyoutItem Text="Full-width diff (toggle)" Command="{Binding ToggleDiffExpandedCommand}">
+                <MenuFlyoutItem.KeyboardAccelerators><KeyboardAccelerator Modifiers="Ctrl" Key="D3" /></MenuFlyoutItem.KeyboardAccelerators>
+            </MenuFlyoutItem>
+            <MenuFlyoutSeparator />
+            <MenuFlyoutItem Text="Refresh" Command="{Binding RefreshCommand}">
+                <MenuFlyoutItem.KeyboardAccelerators><KeyboardAccelerator Key="F5" /></MenuFlyoutItem.KeyboardAccelerators>
+            </MenuFlyoutItem>
+        </MenuBarItem>
+
+        <MenuBarItem Text="Repository">
+            <MenuFlyoutItem Text="Push" Command="{Binding PushCommand}">
+                <MenuFlyoutItem.KeyboardAccelerators><KeyboardAccelerator Modifiers="Ctrl" Key="P" /></MenuFlyoutItem.KeyboardAccelerators>
+            </MenuFlyoutItem>
+            <MenuFlyoutItem Text="Pull" Command="{Binding PullCommand}">
+                <MenuFlyoutItem.KeyboardAccelerators><KeyboardAccelerator Modifiers="Ctrl,Shift" Key="P" /></MenuFlyoutItem.KeyboardAccelerators>
+            </MenuFlyoutItem>
+            <MenuFlyoutItem Text="Fetch" Command="{Binding FetchCommand}">
+                <MenuFlyoutItem.KeyboardAccelerators><KeyboardAccelerator Modifiers="Ctrl,Shift" Key="T" /></MenuFlyoutItem.KeyboardAccelerators>
+            </MenuFlyoutItem>
+            <MenuFlyoutItem Text="Remove…" Command="{Binding RemoveRepositoryCommand}" />
+            <MenuFlyoutSeparator />
+            <MenuFlyoutItem Text="{Binding ViewOnHostText}" Command="{Binding ViewOnHostCommand}">
+                <MenuFlyoutItem.KeyboardAccelerators><KeyboardAccelerator Modifiers="Ctrl,Shift" Key="G" /></MenuFlyoutItem.KeyboardAccelerators>
+            </MenuFlyoutItem>
+            <MenuFlyoutItem Text="Open in Terminal" Command="{Binding OpenInTerminalCommand}" />
+            <MenuFlyoutItem Text="{OnPlatform Default='Show in Explorer', MacCatalyst='Show in Finder'}" Command="{Binding ShowInExplorerCommand}">
+                <MenuFlyoutItem.KeyboardAccelerators><KeyboardAccelerator Modifiers="Ctrl,Shift" Key="F" /></MenuFlyoutItem.KeyboardAccelerators>
+            </MenuFlyoutItem>
+            <MenuFlyoutItem Text="Open in editor" Command="{Binding OpenInEditorCommand}">
+                <MenuFlyoutItem.KeyboardAccelerators><KeyboardAccelerator Modifiers="Ctrl,Shift" Key="A" /></MenuFlyoutItem.KeyboardAccelerators>
+            </MenuFlyoutItem>
+            <MenuFlyoutSeparator />
+            <MenuFlyoutItem Text="{Binding CreateIssueText}" Command="{Binding CreateIssueCommand}">
+                <MenuFlyoutItem.KeyboardAccelerators><KeyboardAccelerator Modifiers="Ctrl" Key="I" /></MenuFlyoutItem.KeyboardAccelerators>
+            </MenuFlyoutItem>
+            <MenuFlyoutItem Text="{Binding ViewIssuesText}" Command="{Binding ViewIssuesCommand}" />
+            <MenuFlyoutItem Text="{Binding ViewChangeRequestsText}" Command="{Binding ViewChangeRequestsCommand}" />
+            <MenuFlyoutItem Text="{Binding ViewCiListText}" Command="{Binding ViewCiListCommand}" />
+            <MenuFlyoutSeparator />
+            <MenuFlyoutItem Text="Repository settings…" Command="{Binding RepositorySettingsCommand}" />
+        </MenuBarItem>
+
+        <MenuBarItem Text="Branch">
+            <MenuFlyoutItem Text="New branch…" Command="{Binding NewBranchCommand}">
+                <MenuFlyoutItem.KeyboardAccelerators><KeyboardAccelerator Modifiers="Ctrl,Shift" Key="N" /></MenuFlyoutItem.KeyboardAccelerators>
+            </MenuFlyoutItem>
+            <MenuFlyoutItem Text="Rename…" Command="{Binding RenameBranchCommand}">
+                <MenuFlyoutItem.KeyboardAccelerators><KeyboardAccelerator Modifiers="Ctrl,Shift" Key="R" /></MenuFlyoutItem.KeyboardAccelerators>
+            </MenuFlyoutItem>
+            <MenuFlyoutItem Text="Delete…" Command="{Binding DeleteBranchCommand}">
+                <MenuFlyoutItem.KeyboardAccelerators><KeyboardAccelerator Modifiers="Ctrl,Shift" Key="D" /></MenuFlyoutItem.KeyboardAccelerators>
+            </MenuFlyoutItem>
+            <MenuFlyoutSeparator />
+            <MenuFlyoutItem Text="Discard all changes…" Command="{Binding DiscardAllChangesCommand}" />
+            <MenuFlyoutItem Text="Stash all changes" Command="{Binding StashAllChangesCommand}">
+                <MenuFlyoutItem.KeyboardAccelerators><KeyboardAccelerator Modifiers="Ctrl,Shift" Key="S" /></MenuFlyoutItem.KeyboardAccelerators>
+            </MenuFlyoutItem>
+            <MenuFlyoutItem Text="Restore stashed changes…" Command="{Binding RestoreStashCommand}" />
+            <MenuFlyoutSeparator />
+            <MenuFlyoutItem Text="{Binding UpdateFromDefaultText}" Command="{Binding UpdateFromDefaultCommand}">
+                <MenuFlyoutItem.KeyboardAccelerators><KeyboardAccelerator Modifiers="Ctrl,Shift" Key="U" /></MenuFlyoutItem.KeyboardAccelerators>
+            </MenuFlyoutItem>
+            <MenuFlyoutItem Text="{Binding CompareToBranchText}" Command="{Binding CompareToBranchCommand}">
+                <MenuFlyoutItem.KeyboardAccelerators><KeyboardAccelerator Modifiers="Ctrl,Shift" Key="B" /></MenuFlyoutItem.KeyboardAccelerators>
+            </MenuFlyoutItem>
+            <MenuFlyoutItem Text="Merge into current branch…" Command="{Binding MergeIntoCurrentCommand}">
+                <MenuFlyoutItem.KeyboardAccelerators><KeyboardAccelerator Modifiers="Ctrl,Shift" Key="M" /></MenuFlyoutItem.KeyboardAccelerators>
+            </MenuFlyoutItem>
+            <MenuFlyoutItem Text="Squash and merge into current branch…" Command="{Binding SquashMergeIntoCurrentCommand}">
+                <MenuFlyoutItem.KeyboardAccelerators><KeyboardAccelerator Modifiers="Ctrl,Shift" Key="H" /></MenuFlyoutItem.KeyboardAccelerators>
+            </MenuFlyoutItem>
+            <MenuFlyoutItem Text="Rebase current branch…" Command="{Binding RebaseCurrentCommand}">
+                <MenuFlyoutItem.KeyboardAccelerators><KeyboardAccelerator Modifiers="Ctrl,Shift" Key="E" /></MenuFlyoutItem.KeyboardAccelerators>
+            </MenuFlyoutItem>
+            <MenuFlyoutItem Text="Continue merge / rebase" Command="{Binding ContinueOperationCommand}" />
+            <MenuFlyoutItem Text="Abort merge / rebase…" Command="{Binding AbortOperationCommand}" />
+            <MenuFlyoutSeparator />
+            <MenuFlyoutItem Text="{Binding CompareOnHostText}" Command="{Binding CompareOnHostCommand}">
+                <MenuFlyoutItem.KeyboardAccelerators><KeyboardAccelerator Modifiers="Ctrl,Shift" Key="C" /></MenuFlyoutItem.KeyboardAccelerators>
+            </MenuFlyoutItem>
+            <MenuFlyoutItem Text="{Binding ViewBranchOnHostText}" Command="{Binding ViewBranchOnHostCommand}">
+                <MenuFlyoutItem.KeyboardAccelerators><KeyboardAccelerator Modifiers="Ctrl,Alt" Key="B" /></MenuFlyoutItem.KeyboardAccelerators>
+            </MenuFlyoutItem>
+            <MenuFlyoutItem Text="{Binding CreateChangeRequestText}" Command="{Binding CreateChangeRequestCommand}">
+                <MenuFlyoutItem.KeyboardAccelerators><KeyboardAccelerator Modifiers="Ctrl,Alt" Key="P" /></MenuFlyoutItem.KeyboardAccelerators>
+            </MenuFlyoutItem>
+            <MenuFlyoutItem Text="{Binding ViewChangeRequestText}" Command="{Binding ViewChangeRequestCommand}">
+                <MenuFlyoutItem.KeyboardAccelerators><KeyboardAccelerator Modifiers="Ctrl" Key="R" /></MenuFlyoutItem.KeyboardAccelerators>
+            </MenuFlyoutItem>
+            <MenuFlyoutItem Text="{Binding ViewCiText}" Command="{Binding ViewCiCommand}" />
+        </MenuBarItem>
+
+        <MenuBarItem Text="Help">
+            <MenuFlyoutItem Text="Documentation" Clicked="OnDocumentationClicked">
+                <MenuFlyoutItem.KeyboardAccelerators><KeyboardAccelerator Key="F1" /></MenuFlyoutItem.KeyboardAccelerators>
+            </MenuFlyoutItem>
+            <MenuFlyoutItem Text="Check for updates…" Clicked="OnCheckForUpdatesClicked" />
+            <MenuFlyoutSeparator />
+            <MenuFlyoutItem Text="Git command log" Command="{Binding ShowCommandLogCommand}" />
+            <MenuFlyoutItem Text="About CommitDesk" Clicked="OnAboutClicked" />
+        </MenuBarItem>
+    </ContentPage.MenuBarItems>
+
+    <Grid RowDefinitions="Auto,Auto,*,Auto">
+
+        <!-- ── Toolbar ─────────────────────────────────────────────────────── -->
+        <Grid x:Name="Toolbar" ColumnDefinitions="300,1,300,1,240,*"
+              BackgroundColor="{AppThemeBinding Light={StaticResource ToolbarLight}, Dark={StaticResource ToolbarDark}}">
+
+            <Grid x:Name="RepositoryButton" Style="{StaticResource ToolbarCell}" ColumnDefinitions="*,Auto">
+                <!-- Right-click, like GitHub Desktop: copy names and paths (handy for AI assistants), and open it elsewhere -->
+                <FlyoutBase.ContextFlyout>
+                    <MenuFlyout>
+                        <MenuFlyoutItem Text="Copy repository name" Command="{Binding CopyRepositoryNameCommand}" />
+                        <MenuFlyoutItem Text="Copy repository path" Command="{Binding CopyRepositoryPathCommand}" />
+                        <MenuFlyoutItem Text="Copy remote URL" Command="{Binding CopyRemoteUrlCommand}" />
+                        <MenuFlyoutSeparator />
+                        <MenuFlyoutItem Text="{Binding ViewOnHostText}" Command="{Binding ViewOnHostCommand}" />
+                        <MenuFlyoutItem Text="Open in Terminal" Command="{Binding OpenInTerminalCommand}" />
+                        <MenuFlyoutItem Text="{OnPlatform Default='Show in Explorer', MacCatalyst='Show in Finder'}" Command="{Binding ShowInExplorerCommand}" />
+                        <MenuFlyoutItem Text="Open in editor" Command="{Binding OpenInEditorCommand}" />
+                        <MenuFlyoutSeparator />
+                        <MenuFlyoutItem Text="Repository settings…" Command="{Binding RepositorySettingsCommand}" />
+                        <MenuFlyoutItem Text="Remove…" Command="{Binding RemoveRepositoryCommand}" />
+                    </MenuFlyout>
+                </FlyoutBase.ContextFlyout>
+                <Grid.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding ChooseRepositoryCommand}" />
+                </Grid.GestureRecognizers>
+                <VerticalStackLayout VerticalOptions="Center">
+                    <Label Text="Current repository" Style="{StaticResource ToolbarCaption}" />
+                    <Label Text="{Binding RepoName}" Style="{StaticResource ToolbarValue}" />
+                </VerticalStackLayout>
+                <Label Grid.Column="1" Text="▾" Style="{StaticResource ToolbarValue}" VerticalOptions="Center" />
+            </Grid>
+
+            <BoxView Grid.Column="1" Color="{StaticResource ToolbarHover}" />
+
+            <Grid x:Name="BranchButton" Grid.Column="2" Style="{StaticResource ToolbarCell}" ColumnDefinitions="*,Auto,Auto,Auto" ColumnSpacing="6">
+                <FlyoutBase.ContextFlyout>
+                    <MenuFlyout>
+                        <MenuFlyoutItem Text="Rename…" Command="{Binding RenameBranchCommand}" />
+                        <MenuFlyoutItem Text="Copy branch name" Command="{Binding CopyBranchNameCommand}" />
+                        <MenuFlyoutItem Text="Copy link to branch" Command="{Binding CopyBranchLinkCommand}" />
+                        <MenuFlyoutItem Text="{Binding CopyChangeRequestLinkText}" Command="{Binding CopyChangeRequestLinkCommand}" />
+                        <MenuFlyoutSeparator />
+                        <MenuFlyoutItem Text="{Binding ViewBranchOnHostText}" Command="{Binding ViewBranchOnHostCommand}" />
+                        <MenuFlyoutItem Text="{Binding CreateChangeRequestText}" Command="{Binding CreateChangeRequestCommand}" />
+                        <MenuFlyoutSeparator />
+                        <MenuFlyoutItem Text="Delete…" Command="{Binding DeleteBranchCommand}" />
+                    </MenuFlyout>
+                </FlyoutBase.ContextFlyout>
+                <Grid.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding ChooseBranchCommand}" />
+                </Grid.GestureRecognizers>
+                <VerticalStackLayout VerticalOptions="Center">
+                    <Label Text="Current branch" Style="{StaticResource ToolbarCaption}" />
+                    <Label Text="{Binding BranchName}" Style="{StaticResource ToolbarValue}" />
+                </VerticalStackLayout>
+
+                <!-- Merge request + pipeline badge, like GitHub Desktop's "#34 ✓" -->
+                <Border Grid.Column="1" Style="{StaticResource Badge}" IsVisible="{Binding HasChangeRequest}"
+                        BackgroundColor="{StaticResource ToolbarHover}">
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Command="{Binding ViewChangeRequestCommand}" />
+                    </Border.GestureRecognizers>
+                    <Label Text="{Binding ChangeRequestText}" TextColor="{StaticResource ToolbarText}" FontSize="12" />
+                </Border>
+                <Label Grid.Column="2" Text="{Binding Ci.Status, Converter={StaticResource PipelineStatusGlyph}}"
+                       TextColor="{Binding Ci.Status, Converter={StaticResource PipelineStatusColor}}"
+                       IsVisible="{Binding HasCi}" FontSize="16" FontAttributes="Bold" VerticalOptions="Center"
+                       ToolTipProperties.Text="{Binding Ci.Status}">
+                    <Label.GestureRecognizers>
+                        <TapGestureRecognizer Command="{Binding ViewCiCommand}" />
+                    </Label.GestureRecognizers>
+                </Label>
+                <Label Grid.Column="3" Text="▾" Style="{StaticResource ToolbarValue}" VerticalOptions="Center" />
+            </Grid>
+
+            <BoxView Grid.Column="3" Color="{StaticResource ToolbarHover}" />
+
+            <Grid Grid.Column="4" Style="{StaticResource ToolbarCell}" ColumnDefinitions="Auto,*" ColumnSpacing="10"
+                  IsVisible="{Binding HasRepository}">
+                <Grid.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding SyncCommand}" />
+                </Grid.GestureRecognizers>
+                <Label Text="⟳" Style="{StaticResource ToolbarValue}" FontSize="20" VerticalOptions="Center" />
+                <VerticalStackLayout Grid.Column="1" VerticalOptions="Center">
+                    <Label Text="{Binding SyncTitle}" Style="{StaticResource ToolbarValue}" />
+                    <Label Text="{Binding SyncSubtitle}" Style="{StaticResource ToolbarCaption}" />
+                </VerticalStackLayout>
+            </Grid>
+
+            <HorizontalStackLayout Grid.Column="5" HorizontalOptions="End" Spacing="8" Padding="12,0" IsVisible="{Binding IsBusy}">
+                <ActivityIndicator IsRunning="{Binding IsBusy}" Color="{StaticResource ToolbarText}" HeightRequest="20" WidthRequest="20" />
+                <Label Text="{Binding BusyText}" Style="{StaticResource ToolbarCaption}" VerticalOptions="Center" />
+            </HorizontalStackLayout>
+        </Grid>
+
+        <!-- ── Merge / rebase banner ───────────────────────────────────────── -->
+        <Grid Grid.Row="1" ColumnDefinitions="*,Auto,Auto,Auto" ColumnSpacing="8" Padding="12,6" IsVisible="{Binding ShowOperationBanner}"
+              BackgroundColor="{AppThemeBinding Light={StaticResource BannerLight}, Dark={StaticResource BannerDark}}">
+            <Label Text="{Binding OperationBanner}" VerticalOptions="Center" />
+            <Button Grid.Column="1" Text="Resolve conflicts…" Command="{Binding ResolveConflictsCommand}"
+                    IsVisible="{Binding HasConflicts}" Style="{StaticResource SecondaryButton}" />
+            <Button Grid.Column="2" Text="Continue" Command="{Binding ContinueOperationCommand}" IsVisible="{Binding HasOperation}" />
+            <Button Grid.Column="3" Text="Abort" Command="{Binding AbortOperationCommand}" Style="{StaticResource SecondaryButton}"
+                    IsVisible="{Binding HasOperation}" />
+        </Grid>
+
+        <!-- ── Welcome (no repository) ─────────────────────────────────────── -->
+        <VerticalStackLayout Grid.Row="2" IsVisible="{Binding NoRepository}" Spacing="12"
+                             HorizontalOptions="Center" VerticalOptions="Center" WidthRequest="380">
+            <Image Source="logo.png" WidthRequest="128" HeightRequest="128" HorizontalOptions="Center" Margin="0,0,0,8" />
+            <Label Text="Let's get started!" FontSize="26" FontAttributes="Bold" HorizontalOptions="Center" />
+            <Label Text="Add a repository to CommitDesk to start collaborating" Style="{StaticResource SecondaryText}"
+                   FontSize="14" HorizontalOptions="Center" Margin="0,0,0,12" />
+            <Button Text="{Binding OpenRepositoryListText}" Command="{Binding ChooseRepositoryCommand}" IsVisible="{Binding HasRepositoryList}" />
+            <Button Text="Clone a repository…" Command="{Binding CloneRepositoryCommand}" />
+            <Button Text="Add an existing repository from your hard drive…" Command="{Binding AddLocalRepositoryCommand}" Style="{StaticResource SecondaryButton}" />
+            <Button Text="Create a new repository…" Command="{Binding NewRepositoryCommand}" Style="{StaticResource SecondaryButton}" />
+            <Button Text="Options…" Command="{Binding OptionsCommand}" Style="{StaticResource SecondaryButton}" />
+        </VerticalStackLayout>
+
+        <!-- ── Repository view ─────────────────────────────────────────────── -->
+        <Grid x:Name="RepoGrid" Grid.Row="2" ColumnDefinitions="340,Auto,*" IsVisible="{Binding HasRepository}">
+
+            <!-- Left pane (hidden when the diff is expanded to full width) -->
+            <Grid RowDefinitions="Auto,1,*" IsVisible="{Binding ShowLists}"
+                  BackgroundColor="{AppThemeBinding Light={StaticResource PaneLight}, Dark={StaticResource PaneDark}}">
+
+                <Grid ColumnDefinitions="*,*">
+                    <Grid ColumnDefinitions="*,Auto,Auto,*" ColumnSpacing="6">
+                        <!-- The button handles clicks; the label and count are drawn over it so the count sits next to the text.
+                             Each is InputTransparent itself, with no layout around them: on Windows an InputTransparent
+                             layout still caught clicks on the text, so clicking "Changes" did nothing. -->
+                        <Button Grid.ColumnSpan="4" Style="{StaticResource TabButton}" Command="{Binding ShowChangesCommand}" SemanticProperties.Description="Changes" />
+                        <Label Grid.Column="1" Text="Changes" FontAttributes="Bold" VerticalOptions="Center" InputTransparent="True"
+                               TextColor="{AppThemeBinding Light={StaticResource Black}, Dark={StaticResource White}}" />
+                        <Border Grid.Column="2" Style="{StaticResource Badge}" IsVisible="{Binding HasChanges}" InputTransparent="True"
+                                BackgroundColor="{AppThemeBinding Light={StaticResource BorderLight}, Dark={StaticResource BorderDark}}">
+                            <Label Text="{Binding ChangedFilesCount}" FontSize="11" FontAttributes="Bold" InputTransparent="True" />
+                        </Border>
+                        <BoxView Grid.ColumnSpan="4" HeightRequest="3" VerticalOptions="End" Color="{StaticResource GitLabOrange}" IsVisible="{Binding IsChangesTab}" InputTransparent="True" />
+                    </Grid>
+                    <Grid Grid.Column="1">
+                        <Button Text="History" Style="{StaticResource TabButton}" Command="{Binding ShowHistoryCommand}" />
+                        <BoxView HeightRequest="3" VerticalOptions="End" Color="{StaticResource GitLabOrange}" IsVisible="{Binding IsHistoryTab}" InputTransparent="True" />
+                    </Grid>
+                </Grid>
+                <BoxView Grid.Row="1" Style="{StaticResource Separator}" />
+
+                <!-- Changes list + commit box -->
+                <Grid Grid.Row="2" RowDefinitions="Auto,1,*,1,Auto" IsVisible="{Binding IsChangesTab}">
+                    <!-- A background makes the whole row, not just its controls, open the menu on right-click. -->
+                    <Grid ColumnDefinitions="Auto,*" Padding="6,0" BackgroundColor="Transparent">
+                        <FlyoutBase.ContextFlyout>
+                            <MenuFlyout>
+                                <MenuFlyoutItem Text="Discard all changes…" Command="{Binding DiscardAllChangesCommand}" />
+                                <MenuFlyoutItem Text="Stash all changes" Command="{Binding StashAllChangesCommand}" />
+                                <MenuFlyoutSeparator />
+                                <MenuFlyoutItem Text="Copy all changes as patch" Command="{Binding CopyAllChangesAsPatchCommand}" />
+                            </MenuFlyout>
+                        </FlyoutBase.ContextFlyout>
+                        <CheckBox IsChecked="{Binding AllIncluded}" IsEnabled="{Binding HasChanges}" />
+                        <Label Grid.Column="1" Text="{Binding ChangedFilesHeader}" Style="{StaticResource SectionHeader}" />
+                    </Grid>
+                    <BoxView Grid.Row="1" Style="{StaticResource Separator}" />
+
+                    <CollectionView Grid.Row="2" ItemsSource="{Binding ChangedFiles}" SelectionMode="Single"
+                                    SelectedItem="{Binding SelectedChange}">
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate x:DataType="vm:ChangedFileViewModel">
+                                <Grid ColumnDefinitions="Auto,*,Auto,Auto" Padding="6,0,10,0" ColumnSpacing="4">
+                                    <FlyoutBase.ContextFlyout>
+                                        <MenuFlyout>
+                                            <MenuFlyoutItem Text="Discard changes…" Clicked="OnDiscardFile" />
+                                            <MenuFlyoutSeparator />
+                                            <MenuFlyoutItem Text="Ignore file (add to .gitignore)" Clicked="OnIgnoreFile" />
+                                            <MenuFlyoutItem Text="Ignore all files with this extension" Clicked="OnIgnoreExtension" />
+                                            <MenuFlyoutSeparator />
+                                            <MenuFlyoutItem Text="Copy diff" Clicked="OnCopyFileDiff" />
+                                            <MenuFlyoutItem Text="Copy file path" Clicked="OnCopyFullPath" />
+                                            <MenuFlyoutItem Text="Copy relative file path" Clicked="OnCopyRelativePath" />
+                                            <MenuFlyoutSeparator />
+                                            <MenuFlyoutItem Text="{OnPlatform Default='Show in Explorer', MacCatalyst='Show in Finder'}" Clicked="OnShowFileInFolder" />
+                                            <MenuFlyoutItem Text="Open in editor" Clicked="OnOpenFileInEditor" />
+                                            <MenuFlyoutItem Text="Open with default program" Clicked="OnOpenFileDefault" />
+                                        </MenuFlyout>
+                                    </FlyoutBase.ContextFlyout>
+
+                                    <CheckBox IsChecked="{Binding IsIncluded}" />
+                                    <controls:PathLabel Grid.Column="1" VerticalOptions="Center" Directory="{Binding Change.Directory}" FileName="{Binding Change.FileName}" />
+                                    <Label Grid.Column="2" Text="partial" FontSize="10" VerticalOptions="Center" IsVisible="{Binding IsPartial}"
+                                           Style="{StaticResource SecondaryText}" />
+                                    <Border Grid.Column="3" Style="{StaticResource Badge}" WidthRequest="18" HeightRequest="18" Padding="0"
+                                            Stroke="{Binding Change.Kind, Converter={StaticResource FileChangeKindColor}}" StrokeThickness="1.5"
+                                            ToolTipProperties.Text="{Binding Change.Kind}">
+                                        <Label Text="{Binding Change.Badge}" FontSize="12" FontAttributes="Bold"
+                                               HorizontalOptions="Center" VerticalOptions="Center"
+                                               TextColor="{Binding Change.Kind, Converter={StaticResource FileChangeKindColor}}" />
+                                    </Border>
+                                </Grid>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+
+                    <BoxView Grid.Row="3" Style="{StaticResource Separator}" />
+
+                    <VerticalStackLayout Grid.Row="4" Padding="10" Spacing="8">
+                        <Grid ColumnDefinitions="*,Auto" IsVisible="{Binding IsAmending}">
+                            <Label Text="Amending the last commit" Style="{StaticResource SecondaryText}" VerticalOptions="Center" />
+                            <Button Grid.Column="1" Text="Cancel" Command="{Binding CancelAmendCommand}" Style="{StaticResource SecondaryButton}" Padding="8,2" />
+                        </Grid>
+                        <Entry Text="{Binding CommitSummary}" Placeholder="Summary (required)" />
+                        <Editor Text="{Binding CommitDescription}" Placeholder="Description" HeightRequest="90" AutoSize="Disabled" />
+                        <Button Text="{Binding CommitButtonText}" Command="{Binding CommitCommand}" IsEnabled="{Binding CanCommit}" FontAttributes="Bold" />
+                    </VerticalStackLayout>
+                </Grid>
+
+                <!-- History list -->
+                <CollectionView Grid.Row="2" IsVisible="{Binding IsHistoryTab}"
+                                ItemsSource="{Binding Commits}" SelectionMode="Single" SelectedItem="{Binding SelectedCommit}"
+                                RemainingItemsThreshold="20" RemainingItemsThresholdReachedCommand="{Binding LoadMoreHistoryCommand}">
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate x:DataType="git:CommitInfo">
+                            <Grid RowDefinitions="Auto,Auto" ColumnDefinitions="*,Auto,Auto" Padding="12,8" RowSpacing="2" ColumnSpacing="6">
+                                <FlyoutBase.ContextFlyout>
+                                    <MenuFlyout>
+                                        <MenuFlyoutItem Text="Amend commit…" Clicked="OnAmendCommit" />
+                                        <MenuFlyoutItem Text="Reset to commit…" Clicked="OnResetToCommit" />
+                                        <MenuFlyoutItem Text="Checkout commit" Clicked="OnCheckoutCommit" />
+                                        <MenuFlyoutItem Text="Revert changes in commit" Clicked="OnRevertCommit" />
+                                        <MenuFlyoutSeparator />
+                                        <MenuFlyoutItem Text="Create branch from commit" Clicked="OnCreateBranchFromCommit" />
+                                        <MenuFlyoutItem Text="Create tag…" Clicked="OnCreateTag" />
+                                        <MenuFlyoutItem Text="Cherry-pick commit…" Clicked="OnCherryPick" />
+                                        <MenuFlyoutSeparator />
+                                        <MenuFlyoutItem Text="Copy SHA" Clicked="OnCopySha" />
+                                        <MenuFlyoutItem Text="Copy commit as patch" Clicked="OnCopyCommitPatch" />
+                                        <MenuFlyoutItem Text="Copy tag" Clicked="OnCopyTag" />
+                                        <MenuFlyoutItem Text="View commit in browser" Clicked="OnViewCommitOnHost" />
+                                    </MenuFlyout>
+                                </FlyoutBase.ContextFlyout>
+
+                                <Label Text="{Binding Summary}" FontAttributes="Bold" FontSize="13" LineBreakMode="TailTruncation" />
+                                <HorizontalStackLayout Grid.Row="1" Spacing="4">
+                                    <Label Text="{Binding AuthorName}" Style="{StaticResource SecondaryText}" />
+                                    <Label Text="•" Style="{StaticResource SecondaryText}" />
+                                    <Label Text="{Binding AuthorDate, Converter={StaticResource RelativeTime}}" Style="{StaticResource SecondaryText}" />
+                                </HorizontalStackLayout>
+                                <HorizontalStackLayout Grid.RowSpan="2" Grid.Column="1" Spacing="4" VerticalOptions="Center"
+                                                       BindableLayout.ItemsSource="{Binding Tags}">
+                                    <BindableLayout.ItemTemplate>
+                                        <DataTemplate x:DataType="x:String">
+                                            <Border Style="{StaticResource Badge}"
+                                                    BackgroundColor="{AppThemeBinding Light={StaticResource BorderLight}, Dark={StaticResource BorderDark}}">
+                                                <Label Text="{Binding .}" FontSize="11" />
+                                            </Border>
+                                        </DataTemplate>
+                                    </BindableLayout.ItemTemplate>
+                                </HorizontalStackLayout>
+                                <Label Grid.RowSpan="2" Grid.Column="2" Text="↑" FontAttributes="Bold" IsVisible="{Binding IsUnpushed}"
+                                       ToolTipProperties.Text="Not yet pushed" VerticalOptions="Center"
+                                       TextColor="{StaticResource GitLabOrange}" />
+                            </Grid>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+            </Grid>
+
+            <!-- Drag to resize the lists; the width is remembered -->
+            <controls:GridSplitter x:Name="LeftSplitter" Grid.Column="1" PreferenceKey="split_left_pane"
+                                   MinimumSize="240" MinimumRemaining="360" IsVisible="{Binding ShowLists}" />
+
+            <!-- Right pane: Changes -->
+            <Grid Grid.Column="2" IsVisible="{Binding IsChangesTab}">
+                <Grid RowDefinitions="Auto,1,*" IsVisible="{Binding HasChanges}">
+                    <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="12" Padding="12,4">
+                        <Label Text="{Binding SelectedChange.Change.Path}" FontAttributes="Bold" LineBreakMode="HeadTruncation" VerticalOptions="Center"
+                               ToolTipProperties.Text="{Binding SelectedChange.Change.Path}" />
+                        <Label Grid.Column="1" Text="Click the gutter to include or exclude lines" Style="{StaticResource SecondaryText}" VerticalOptions="Center"
+                               IsVisible="{Binding IsChangeText}" />
+                        <Button Grid.Column="2" Text="{Binding DiffExpandText}" Command="{Binding ToggleDiffExpandedCommand}"
+                                Style="{StaticResource SecondaryButton}" Padding="10,2" FontSize="12"
+                                ToolTipProperties.Text="Show the diff across the full width (toggle)" />
+                    </Grid>
+                    <BoxView Grid.Row="1" Style="{StaticResource Separator}" />
+                    <controls:DiffView Grid.Row="2" Lines="{Binding ChangeDiffLines}" Message="{Binding ChangeDiffMessage}"
+                                       ToggleCommand="{Binding ToggleLineCommand}" IsVisible="{Binding IsChangeText}" />
+                    <controls:ImageDiffView Grid.Row="2" Diff="{Binding ChangeImageDiff}" IsVisible="{Binding IsChangeImage}" />
+
+                    <!-- Conflicted file: resolve it with one side's version, or by editing, like GitHub Desktop -->
+                    <ScrollView Grid.Row="2" IsVisible="{Binding IsChangeConflict}">
+                        <VerticalStackLayout Padding="24" Spacing="12" MaximumWidthRequest="640" HorizontalOptions="Start">
+                            <Label Text="This file has conflicts" FontSize="20" FontAttributes="Bold" />
+                            <Label Text="{Binding ConflictStatusText}" />
+                            <Button Text="Open in editor" Command="{Binding OpenConflictInEditorCommand}" HorizontalOptions="Start"
+                                    IsVisible="{Binding ChangeConflict.ExistsOnDisk}" />
+                            <Label Text="Or keep one side's version, dropping the other side's changes to this file:"
+                                   Style="{StaticResource SecondaryText}" Margin="0,8,0,0" />
+                            <HorizontalStackLayout Spacing="8">
+                                <Button Text="{Binding UseOursText}" Command="{Binding ResolveConflictCommand}"
+                                        CommandParameter="{x:Static git:ConflictChoice.Ours}" Style="{StaticResource SecondaryButton}" />
+                                <Button Text="{Binding UseTheirsText}" Command="{Binding ResolveConflictCommand}"
+                                        CommandParameter="{x:Static git:ConflictChoice.Theirs}" Style="{StaticResource SecondaryButton}" />
+                            </HorizontalStackLayout>
+                            <Button Text="Resolve conflicts…" Command="{Binding ResolveConflictsCommand}" HorizontalOptions="Start"
+                                    Style="{StaticResource SecondaryButton}" Margin="0,8,0,0"
+                                    ToolTipProperties.Text="All conflicted files in one list, updated as you save them" />
+                        </VerticalStackLayout>
+                    </ScrollView>
+                </Grid>
+
+                <VerticalStackLayout IsVisible="{Binding HasChanges, Converter={StaticResource InvertBool}}" Spacing="10"
+                                     HorizontalOptions="Center" VerticalOptions="Center" WidthRequest="420">
+                    <Label Text="No local changes" FontSize="22" FontAttributes="Bold" HorizontalOptions="Center" />
+                    <Label Text="There are no uncommitted changes in this repository. Here are some friendly suggestions:"
+                           Style="{StaticResource SecondaryText}" FontSize="13" HorizontalTextAlignment="Center" Margin="0,0,0,8" />
+                    <Button Text="{Binding SyncTitle}" Command="{Binding SyncCommand}" />
+                    <Button Text="{Binding CreateChangeRequestText}" Command="{Binding CreateChangeRequestCommand}" Style="{StaticResource SecondaryButton}" />
+                    <Button Text="Open the repository in your editor" Command="{Binding OpenInEditorCommand}" Style="{StaticResource SecondaryButton}" />
+                    <Button Text="{OnPlatform Default='View the files in Explorer', MacCatalyst='View the files in Finder'}" Command="{Binding ShowInExplorerCommand}" Style="{StaticResource SecondaryButton}" />
+                    <Button Text="{Binding OpenOnHostText}" Command="{Binding ViewOnHostCommand}" Style="{StaticResource SecondaryButton}" />
+                </VerticalStackLayout>
+            </Grid>
+
+            <!-- Right pane: History -->
+            <Grid Grid.Column="2" RowDefinitions="Auto,1,*" IsVisible="{Binding IsHistoryTab}">
+                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12" Padding="12,8" IsVisible="{Binding HasSelectedCommit}">
+                    <VerticalStackLayout Spacing="4">
+                        <Label Text="{Binding SelectedCommit.Summary}" FontSize="16" FontAttributes="Bold" />
+                        <Label Text="{Binding SelectedCommit.Body}" FontSize="13" MaxLines="8" LineBreakMode="WordWrap"
+                               IsVisible="{Binding SelectedCommit.Body, Converter={StaticResource IsNotNullOrEmpty}}" />
+                        <Label Text="{Binding SelectedCommitMeta}" Style="{StaticResource SecondaryText}" />
+                    </VerticalStackLayout>
+                    <Button Grid.Column="1" Text="{Binding DiffExpandText}" Command="{Binding ToggleDiffExpandedCommand}"
+                            Style="{StaticResource SecondaryButton}" Padding="10,2" FontSize="12" VerticalOptions="Start"
+                            ToolTipProperties.Text="Show the diff across the full width (toggle)" />
+                </Grid>
+                <BoxView Grid.Row="1" Style="{StaticResource Separator}" />
+
+                <Grid x:Name="HistoryFilesGrid" Grid.Row="2" ColumnDefinitions="280,Auto,*">
+                    <CollectionView ItemsSource="{Binding CommitFiles}" SelectionMode="Single" SelectedItem="{Binding SelectedCommitFile}"
+                                    IsVisible="{Binding ShowLists}">
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate x:DataType="git:FileChange">
+                                <Grid ColumnDefinitions="*,Auto" Padding="10,6" ColumnSpacing="6" BackgroundColor="Transparent">
+                                    <FlyoutBase.ContextFlyout>
+                                        <MenuFlyout>
+                                            <MenuFlyoutItem Text="{OnPlatform Default='Show in Explorer', MacCatalyst='Show in Finder'}" Clicked="OnShowCommitFileInFolder" />
+                                            <MenuFlyoutItem Text="Open in editor" Clicked="OnOpenCommitFileInEditor" />
+                                            <MenuFlyoutItem Text="Open with default program" Clicked="OnOpenCommitFileDefault" />
+                                            <MenuFlyoutSeparator />
+                                            <MenuFlyoutItem Text="Copy diff" Clicked="OnCopyCommitFileDiff" />
+                                            <MenuFlyoutItem Text="Copy file path" Clicked="OnCopyCommitFileFullPath" />
+                                            <MenuFlyoutItem Text="Copy relative file path" Clicked="OnCopyCommitFileRelativePath" />
+                                            <MenuFlyoutSeparator />
+                                            <MenuFlyoutItem Text="{Binding Source={x:Reference Page}, Path=BindingContext.ViewOnHostText, x:DataType=ContentPage}"
+                                                            Clicked="OnViewCommitFileOnHost" />
+                                        </MenuFlyout>
+                                    </FlyoutBase.ContextFlyout>
+                                    <controls:PathLabel VerticalOptions="Center" Directory="{Binding Directory}" FileName="{Binding FileName}" />
+                                    <Border Grid.Column="1" Style="{StaticResource Badge}" WidthRequest="18" HeightRequest="18" Padding="0"
+                                            Stroke="{Binding Kind, Converter={StaticResource FileChangeKindColor}}" StrokeThickness="1.5">
+                                        <Label Text="{Binding Badge}" FontSize="12" FontAttributes="Bold"
+                                               HorizontalOptions="Center" VerticalOptions="Center"
+                                               TextColor="{Binding Kind, Converter={StaticResource FileChangeKindColor}}" />
+                                    </Border>
+                                </Grid>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+                    <controls:GridSplitter Grid.Column="1" PreferenceKey="split_history_files"
+                                           MinimumSize="160" MinimumRemaining="300" IsVisible="{Binding ShowLists}" />
+                    <controls:DiffView Grid.Column="2" Lines="{Binding CommitDiffLines}" Message="{Binding CommitDiffMessage}"
+                                       IsVisible="{Binding IsCommitText}" />
+                    <controls:ImageDiffView Grid.Column="2" Diff="{Binding CommitImageDiff}" IsVisible="{Binding IsCommitImage}" />
+                </Grid>
+            </Grid>
+        </Grid>
+
+        <!-- ── Status bar ──────────────────────────────────────────────────── -->
+        <Label Grid.Row="3" Text="{Binding StatusMessage}" IsVisible="{Binding StatusMessage, Converter={StaticResource IsNotNullOrEmpty}}"
+               Padding="12,4" FontSize="12" LineBreakMode="TailTruncation"
+               BackgroundColor="{AppThemeBinding Light={StaticResource BannerLight}, Dark={StaticResource BannerDark}}" />
+
+        <!-- ── Repository / branch dropdowns, over everything while open ───── -->
+        <ContentView x:Name="DropdownLayer" Grid.RowSpan="4" IsVisible="False" />
+    </Grid>
+</ContentPage>

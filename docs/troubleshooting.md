@@ -36,7 +36,7 @@ the first place to look when something fails, and safe to share: passwords and t
 
 If the app closes unexpectedly, details are saved in the crash log:
 
-- **Windows**: `%LOCALAPPDATA%\GitLabDesktop\GitLabDesktop\Data\crash.log`
+- **Windows**: `%LOCALAPPDATA%\CommitDesk\CommitDesk\Data\crash.log`
 
 Please include it, along with what you were doing, when reporting a problem. You can report problems as an issue in
 this project.

@@ -1,6 +1,6 @@
-# GitLab Desktop CI on the Windows shell runner (tag "windows"). GitLab ignores the GitHub workflows in .github/.
+# CommitDesk CI on the Windows shell runner (tag "windows"). GitLab ignores the GitHub workflows in .github/.
 #
-#   test                    Merge requests and pushes to main: run GitLabDesktop.Core.Tests (needs git on the runner).
+#   test                    Merge requests and pushes to main: run CommitDesk.Core.Tests (needs git on the runner).
 #   ci-windows, ci-android  Merge requests and pushes to main: publish the Windows app (win-x64, win-arm64) and a
 #                           debug-signed Android APK as job artifacts (7 days).
 #   ci-macos                Same, for the macOS .dmg (universal: Apple silicon and Intel), on the runner tagged "macos";
@@ -99,7 +99,7 @@ stages:
   - RID: [win-x64, win-arm64]
 
 .version: &version
-  - $version = ([regex]::Match((Get-Content GitLabDesktop/GitLabDesktop.csproj -Raw), '<ApplicationDisplayVersion>([^<]+)')).Groups[1].Value
+  - $version = ([regex]::Match((Get-Content CommitDesk/CommitDesk.csproj -Raw), '<ApplicationDisplayVersion>([^<]+)')).Groups[1].Value
 
 # .NET for the jobs on the Windows runner that build the app: SDK band 10.0.4xx with workload set 10.0.401, as on macOS.
 # The runner's dotnet-workload-env (gitlab-runner-install) gives these pins a .NET install of their own, so parallel
@@ -111,7 +111,7 @@ stages:
     $envHelper = Get-Command dotnet-workload-env -ErrorAction SilentlyContinue
     if (-not $envHelper -and (Test-Path 'C:\GitLab-Runner\bin\dotnet-workload-env.ps1')) { $envHelper = 'C:\GitLab-Runner\bin\dotnet-workload-env.ps1' }
     if ($envHelper) { & $envHelper -Sdk 10.0.4xx -WorkloadSet 10.0.401 }
-    else { dotnet workload restore GitLabDesktop.sln }
+    else { dotnet workload restore CommitDesk.sln }
 
 # Windows publish, shared by CI and release.
 # -r with -p:UseMonoRuntime=false: this csproj also targets Android/iOS/Mac Catalyst, so an explicit RID otherwise makes
@@ -120,7 +120,7 @@ stages:
 # --self-contained + WindowsAppSDKSelfContained bundle both runtimes. No PublishSingleFile: WinUI 3 doesn't support it.
 .publish-windows: &publish-windows
   - *dotnet-windows
-  - dotnet publish GitLabDesktop/GitLabDesktop.csproj -f net10.0-windows10.0.19041.0 -c Release -r $env:RID
+  - dotnet publish CommitDesk/CommitDesk.csproj -f net10.0-windows10.0.19041.0 -c Release -r $env:RID
       --self-contained true -p:WindowsPackageType=None -p:UseMonoRuntime=false -p:WindowsAppSDKSelfContained=true
       --output ./publish/$env:RID
 
@@ -132,7 +132,7 @@ test:
   script:
     # The tests create throwaway repositories with the git CLI
     - git --version
-    - dotnet test GitLabDesktop.Core.Tests/GitLabDesktop.Core.Tests.csproj -c Release --logger "junit;LogFilePath=$env:CI_PROJECT_DIR/test-results.xml"
+    - dotnet test CommitDesk.Core.Tests/CommitDesk.Core.Tests.csproj -c Release --logger "junit;LogFilePath=$env:CI_PROJECT_DIR/test-results.xml"
   artifacts:
     when: always
     reports:
@@ -148,11 +148,11 @@ ci-windows:
   script:
     - *publish-windows
     - *version
-    - Compress-Archive -Path "./publish/$env:RID/*" -DestinationPath "./GitLabDesktop-v$version-ci$env:CI_PIPELINE_IID-$env:CI_COMMIT_SHORT_SHA-$env:RID.zip"
+    - Compress-Archive -Path "./publish/$env:RID/*" -DestinationPath "./CommitDesk-v$version-ci$env:CI_PIPELINE_IID-$env:CI_COMMIT_SHORT_SHA-$env:RID.zip"
   artifacts:
     name: ci-app-windows-$RID
     paths:
-      - GitLabDesktop-*.zip
+      - CommitDesk-*.zip
     expire_in: 7 days
 
 ci-android:
@@ -160,19 +160,19 @@ ci-android:
   rules: *ci-rules
   script:
     - *dotnet-windows
-    - dotnet restore GitLabDesktop.sln
+    - dotnet restore CommitDesk.sln
     # Not release-signed: .NET Android falls back to a debug key that differs per run, so this APK installs on a
     # clean device but won't upgrade a release install. No -r: one universal APK with android-arm64 + android-x64.
-    - dotnet publish GitLabDesktop/GitLabDesktop.csproj -f net10.0-android36.0 -c Release --output ./publish/android
+    - dotnet publish CommitDesk/CommitDesk.csproj -f net10.0-android36.0 -c Release --output ./publish/android
     - $apk = Get-ChildItem ./publish/android -Filter *-Signed.apk -Recurse | Select-Object -First 1
     - if (-not $apk) { $apk = Get-ChildItem ./publish/android -Filter *.apk -Recurse | Select-Object -First 1 }
     - if (-not $apk) { throw 'No APK found under ./publish/android' }
     - *version
-    - Copy-Item $apk.FullName "./GitLabDesktop-v$version-ci$env:CI_PIPELINE_IID-$env:CI_COMMIT_SHORT_SHA-android-debug-signed.apk"
+    - Copy-Item $apk.FullName "./CommitDesk-v$version-ci$env:CI_PIPELINE_IID-$env:CI_COMMIT_SHORT_SHA-android-debug-signed.apk"
   artifacts:
     name: ci-app-android
     paths:
-      - GitLabDesktop-*.apk
+      - CommitDesk-*.apk
     expire_in: 7 days
 
 # The .NET SDK band and workload set the macOS builds use, as in the GitHub workflows: 10.0.401.1 moved the Apple SDKs
@@ -197,7 +197,7 @@ ci-android:
         fi
         echo '{ "sdk": { "version": "10.0.400", "rollForward": "latestPatch" } }' > global.json
         dotnet --version
-        dotnet workload restore GitLabDesktop.sln --version 10.0.401
+        dotnet workload restore CommitDesk.sln --version 10.0.401
       fi
 
 ci-macos:
@@ -206,13 +206,13 @@ ci-macos:
   rules: *macos-ci-rules
   extends: .macos-dotnet
   script:
-    - VERSION=$(sed -n 's:.*<ApplicationDisplayVersion>\(.*\)</ApplicationDisplayVersion>.*:\1:p' GitLabDesktop/GitLabDesktop.csproj | head -1)
+    - VERSION=$(sed -n 's:.*<ApplicationDisplayVersion>\(.*\)</ApplicationDisplayVersion>.*:\1:p' CommitDesk/CommitDesk.csproj | head -1)
     # CI builds are never signed with the release identity
     - env -u MACOS_SIGNING_IDENTITY bash build/build-macos.sh "v$VERSION-ci$CI_PIPELINE_IID-$CI_COMMIT_SHORT_SHA" .
   artifacts:
     name: ci-app-macos
     paths:
-      - GitLabDesktop-*.dmg
+      - CommitDesk-*.dmg
     expire_in: 7 days
 
 # ── Release ─────────────────────────────────────────────────────────────────────────────────────────
@@ -221,7 +221,7 @@ release-check:
   stage: check
   rules: *release-rules
   script:
-    - ./.gitlab/scripts/release-check.ps1 -Project GitLabDesktop/GitLabDesktop.csproj -Element ApplicationDisplayVersion
+    - ./.gitlab/scripts/release-check.ps1 -Project CommitDesk/CommitDesk.csproj -Element ApplicationDisplayVersion
   artifacts:
     reports:
       dotenv: release.env
@@ -238,13 +238,13 @@ release-windows:
     - *publish-windows
     # Signs only the app's own exe (the runtime's createdump/RestartAgent are already Microsoft-signed); skipped with a
     # warning when SIG_PFX_B64 isn't set
-    - ./build/Sign-Files.ps1 -Path ./publish/$env:RID/GitLabDesktop.exe
+    - ./build/Sign-Files.ps1 -Path ./publish/$env:RID/CommitDesk.exe
     - New-Item -ItemType Directory release-files -Force | Out-Null
-    - Compress-Archive -Path "./publish/$env:RID/*" -DestinationPath "./release-files/GitLabDesktop-v$env:RELEASE_VERSION-$env:RID.zip"
+    - Compress-Archive -Path "./publish/$env:RID/*" -DestinationPath "./release-files/CommitDesk-v$env:RELEASE_VERSION-$env:RID.zip"
     # NSIS installer (Start Menu shortcut, uninstaller) alongside the portable zip
-    - $setup = "./release-files/GitLabDesktop-v$env:RELEASE_VERSION-$env:RID-setup.exe"
-    - ./build/Build-Installer.ps1 -SourceDir ./publish/$env:RID -AppName "GitLab Desktop" -AppExe GitLabDesktop.exe
-        -Version $env:RELEASE_VERSION -Arch ($env:RID -replace '^win-', '') -Icon ./publish/$env:RID/GitLabDesktop.ico -OutFile $setup
+    - $setup = "./release-files/CommitDesk-v$env:RELEASE_VERSION-$env:RID-setup.exe"
+    - ./build/Build-Installer.ps1 -SourceDir ./publish/$env:RID -AppName "CommitDesk" -AppExe CommitDesk.exe
+        -Version $env:RELEASE_VERSION -Arch ($env:RID -replace '^win-', '') -Icon ./publish/$env:RID/CommitDesk.ico -OutFile $setup
     - ./build/Sign-Files.ps1 -Path $setup
   artifacts:
     paths:
@@ -262,15 +262,15 @@ release-android:
     # key, so users couldn't upgrade in place. Android is a preview, so a missing keystore skips it rather than
     # failing the whole release.
     - if ([string]::IsNullOrWhiteSpace($env:ANDROID_KEYSTORE_BASE64)) { Write-Warning 'ANDROID_KEYSTORE_BASE64 is not set; the release will not include an Android APK.'; exit 0 }
-    - $keystore = Join-Path ([IO.Path]::GetTempPath()) "gitlabdesktop-release-$env:CI_JOB_ID.keystore"
+    - $keystore = Join-Path ([IO.Path]::GetTempPath()) "commitdesk-release-$env:CI_JOB_ID.keystore"
     - '[IO.File]::WriteAllBytes($keystore, [Convert]::FromBase64String($env:ANDROID_KEYSTORE_BASE64))'
     # The key password defaults to the keystore password; set ANDROID_KEY_PASSWORD only if they differ
     - $keyPassword = if ($env:ANDROID_KEY_PASSWORD) { $env:ANDROID_KEY_PASSWORD } else { $env:ANDROID_KEYSTORE_PASSWORD }
     # Say which of keystore / password / alias / key password is wrong, instead of jarsigner's bare "exited with code 1"
     - ./build/Test-AndroidKeystore.ps1 -Keystore $keystore -StorePassword $env:ANDROID_KEYSTORE_PASSWORD -Alias $env:ANDROID_KEY_ALIAS -KeyPassword $keyPassword
     - *dotnet-windows
-    - dotnet restore GitLabDesktop.sln
-    - dotnet publish GitLabDesktop/GitLabDesktop.csproj -f net10.0-android36.0 -c Release -p:AndroidKeyStore=true
+    - dotnet restore CommitDesk.sln
+    - dotnet publish CommitDesk/CommitDesk.csproj -f net10.0-android36.0 -c Release -p:AndroidKeyStore=true
         "-p:AndroidSigningKeyStore=$keystore" "-p:AndroidSigningStorePass=$env:ANDROID_KEYSTORE_PASSWORD"
         "-p:AndroidSigningKeyAlias=$env:ANDROID_KEY_ALIAS" "-p:AndroidSigningKeyPass=$keyPassword"
         --output ./publish/android
@@ -278,9 +278,9 @@ release-android:
     - if (-not $apk) { $apk = Get-ChildItem ./publish/android -Filter *.apk -Recurse | Select-Object -First 1 }
     - if (-not $apk) { throw 'No APK found under ./publish/android' }
     - New-Item -ItemType Directory release-files -Force | Out-Null
-    - Copy-Item $apk.FullName "./release-files/GitLabDesktop-v$env:RELEASE_VERSION-android-preview.apk"
+    - Copy-Item $apk.FullName "./release-files/CommitDesk-v$env:RELEASE_VERSION-android-preview.apk"
   after_script:
-    - Remove-Item (Join-Path ([IO.Path]::GetTempPath()) "gitlabdesktop-release-$env:CI_JOB_ID.keystore") -Force -ErrorAction SilentlyContinue
+    - Remove-Item (Join-Path ([IO.Path]::GetTempPath()) "commitdesk-release-$env:CI_JOB_ID.keystore") -Force -ErrorAction SilentlyContinue
   artifacts:
     paths:
       - release-files/
@@ -312,7 +312,7 @@ release-publish:
       optional: true
   resource_group: release
   script:
-    - ./.gitlab/scripts/publish-release.ps1 -PackageName gitlabdesktop -ReleaseName "GitLab Desktop"
+    - ./.gitlab/scripts/publish-release.ps1 -PackageName commitdesk -ReleaseName "CommitDesk"
 
 # Google Play: run by hand (the ▶ button) on a release pipeline. Builds an Android App Bundle signed with the release
 # keystore (Play's upload key) and releases it on PLAY_TRACK (default internal). The .aab is kept as an artifact: the
@@ -333,14 +333,14 @@ publish-play:
     PLAY_RELEASE_STATUS: "completed" # or "draft" to review and roll out in Play Console
   script:
     - if ([string]::IsNullOrWhiteSpace($env:ANDROID_KEYSTORE_BASE64)) { throw 'ANDROID_KEYSTORE_BASE64 is not set; Play bundles must be signed with the upload key.' }
-    - $keystore = Join-Path ([IO.Path]::GetTempPath()) "gitlabdesktop-play-$env:CI_JOB_ID.keystore"
+    - $keystore = Join-Path ([IO.Path]::GetTempPath()) "commitdesk-play-$env:CI_JOB_ID.keystore"
     - '[IO.File]::WriteAllBytes($keystore, [Convert]::FromBase64String($env:ANDROID_KEYSTORE_BASE64))'
     - $keyPassword = if ($env:ANDROID_KEY_PASSWORD) { $env:ANDROID_KEY_PASSWORD } else { $env:ANDROID_KEYSTORE_PASSWORD }
     - ./build/Test-AndroidKeystore.ps1 -Keystore $keystore -StorePassword $env:ANDROID_KEYSTORE_PASSWORD -Alias $env:ANDROID_KEY_ALIAS -KeyPassword $keyPassword
     - *dotnet-windows
-    - dotnet restore GitLabDesktop.sln
+    - dotnet restore CommitDesk.sln
     # Play takes App Bundles (.aab), not APKs; ApplicationVersion is the versionCode and must rise with every upload
-    - dotnet publish GitLabDesktop/GitLabDesktop.csproj -f net10.0-android36.0 -c Release -p:PlayStore=true -p:AndroidPackageFormat=aab
+    - dotnet publish CommitDesk/CommitDesk.csproj -f net10.0-android36.0 -c Release -p:PlayStore=true -p:AndroidPackageFormat=aab
         -p:AndroidKeyStore=true "-p:AndroidSigningKeyStore=$keystore" "-p:AndroidSigningStorePass=$env:ANDROID_KEYSTORE_PASSWORD"
         "-p:AndroidSigningKeyAlias=$env:ANDROID_KEY_ALIAS" "-p:AndroidSigningKeyPass=$keyPassword"
         --output ./publish/play
@@ -348,13 +348,13 @@ publish-play:
     - if (-not $aab) { $aab = Get-ChildItem ./publish/play -Filter *.aab -Recurse | Select-Object -First 1 }
     - if (-not $aab) { throw 'No .aab found under ./publish/play' }
     - New-Item -ItemType Directory play-files -Force | Out-Null
-    - Copy-Item $aab.FullName "./play-files/GitLabDesktop-v$env:RELEASE_VERSION.aab"
+    - Copy-Item $aab.FullName "./play-files/CommitDesk-v$env:RELEASE_VERSION.aab"
     # Without the Play key the bundle is still built and kept, for the first release (uploaded by hand in Play Console)
     - if ([string]::IsNullOrWhiteSpace($env:PLAY_SERVICE_ACCOUNT_JSON_BASE64)) { Write-Warning 'PLAY_SERVICE_ACCOUNT_JSON_BASE64 is not set, so nothing was uploaded to Google Play. Download the .aab from this job''s artifacts to upload it in Play Console.'; exit 0 }
     - python -m pip install --quiet --disable-pip-version-check google-api-python-client google-auth
-    - python build/publish-play.py --aab "./play-files/GitLabDesktop-v$env:RELEASE_VERSION.aab" --version $env:RELEASE_VERSION --track $env:PLAY_TRACK --status $env:PLAY_RELEASE_STATUS
+    - python build/publish-play.py --aab "./play-files/CommitDesk-v$env:RELEASE_VERSION.aab" --version $env:RELEASE_VERSION --track $env:PLAY_TRACK --status $env:PLAY_RELEASE_STATUS
   after_script:
-    - Remove-Item (Join-Path ([IO.Path]::GetTempPath()) "gitlabdesktop-play-$env:CI_JOB_ID.keystore") -Force -ErrorAction SilentlyContinue
+    - Remove-Item (Join-Path ([IO.Path]::GetTempPath()) "commitdesk-play-$env:CI_JOB_ID.keystore") -Force -ErrorAction SilentlyContinue
   artifacts:
     when: always
     paths:
@@ -373,12 +373,12 @@ android-keystore-check:
   environment: *signing-environment
   script:
     - if ([string]::IsNullOrWhiteSpace($env:ANDROID_KEYSTORE_BASE64)) { throw 'ANDROID_KEYSTORE_BASE64 is not available to this job (check the variable and its environment scope, signing/main).' }
-    - $keystore = Join-Path ([IO.Path]::GetTempPath()) "gitlabdesktop-check-$env:CI_JOB_ID.keystore"
+    - $keystore = Join-Path ([IO.Path]::GetTempPath()) "commitdesk-check-$env:CI_JOB_ID.keystore"
     - '[IO.File]::WriteAllBytes($keystore, [Convert]::FromBase64String($env:ANDROID_KEYSTORE_BASE64))'
     - $keyPassword = if ($env:ANDROID_KEY_PASSWORD) { $env:ANDROID_KEY_PASSWORD } else { $env:ANDROID_KEYSTORE_PASSWORD }
     - ./build/Test-AndroidKeystore.ps1 -Keystore $keystore -StorePassword $env:ANDROID_KEYSTORE_PASSWORD -Alias $env:ANDROID_KEY_ALIAS -KeyPassword $keyPassword
   after_script:
-    - Remove-Item (Join-Path ([IO.Path]::GetTempPath()) "gitlabdesktop-check-$env:CI_JOB_ID.keystore") -Force -ErrorAction SilentlyContinue
+    - Remove-Item (Join-Path ([IO.Path]::GetTempPath()) "commitdesk-check-$env:CI_JOB_ID.keystore") -Force -ErrorAction SilentlyContinue
 
 # ── Version bump ────────────────────────────────────────────────────────────────────────────────────
 

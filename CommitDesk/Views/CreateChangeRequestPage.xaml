@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:CommitDesk.ViewModels"
+             xmlns:git="clr-namespace:CommitDesk.Core.Git;assembly=CommitDesk.Core"
+             x:Class="CommitDesk.Views.CreateChangeRequestPage"
+             x:DataType="vm:CreateChangeRequestViewModel"
+             BackgroundColor="{AppThemeBinding Light={StaticResource PaneLight}, Dark={StaticResource PaneDark}}">
+
+    <Grid RowDefinitions="Auto,Auto,*,Auto,Auto" RowSpacing="10" Padding="16" MaximumWidthRequest="860">
+        <VerticalStackLayout>
+            <Label Text="{Binding Heading}" Style="{StaticResource DialogTitle}" />
+            <Label Text="{Binding ProjectPath}" Style="{StaticResource SecondaryText}" />
+        </VerticalStackLayout>
+
+        <Grid Grid.Row="1" ColumnDefinitions="Auto,Auto,*" ColumnSpacing="10">
+            <Border Style="{StaticResource Badge}" BackgroundColor="{AppThemeBinding Light={StaticResource BorderLight}, Dark={StaticResource BorderDark}}">
+                <Label Text="{Binding SourceBranch}" FontFamily="{StaticResource MonoFont}" />
+            </Border>
+            <Label Grid.Column="1" Text="into" VerticalOptions="Center" />
+            <Picker Grid.Column="2" ItemsSource="{Binding TargetBranches}" SelectedItem="{Binding TargetBranch}"
+                    HorizontalOptions="Start" MinimumWidthRequest="220" />
+        </Grid>
+
+        <Grid Grid.Row="2" ColumnDefinitions="*,300" ColumnSpacing="16">
+            <VerticalStackLayout Spacing="6">
+                <Label Text="Title" Style="{StaticResource SecondaryText}" />
+                <Entry Text="{Binding Title}" />
+                <Label Text="Description (Markdown)" Style="{StaticResource SecondaryText}" />
+                <Editor Text="{Binding Description}" HeightRequest="200" AutoSize="Disabled" />
+
+                <Grid ColumnDefinitions="Auto,*"><CheckBox IsChecked="{Binding IsDraft}" /><Label Grid.Column="1" Text="Mark as draft" VerticalOptions="Center" /></Grid>
+                <Grid ColumnDefinitions="Auto,*"><CheckBox IsChecked="{Binding AssignToMe}" /><Label Grid.Column="1" Text="Assign to me" VerticalOptions="Center" /></Grid>
+                <Grid ColumnDefinitions="Auto,*" IsVisible="{Binding IsGitLab}"><CheckBox IsChecked="{Binding RemoveSourceBranch}" /><Label Grid.Column="1" Text="Delete source branch when merged" VerticalOptions="Center" /></Grid>
+                <Grid ColumnDefinitions="Auto,*" IsVisible="{Binding IsGitLab}"><CheckBox IsChecked="{Binding Squash}" /><Label Grid.Column="1" Text="Squash commits when merged" VerticalOptions="Center" /></Grid>
+                <Grid ColumnDefinitions="Auto,*"><CheckBox IsChecked="{Binding OpenAfterCreate}" /><Label Grid.Column="1" Text="Open in browser after creating" VerticalOptions="Center" /></Grid>
+            </VerticalStackLayout>
+
+            <Grid Grid.Column="1" RowDefinitions="Auto,*">
+                <Label Text="{Binding CommitsHeader}" Style="{StaticResource SectionHeader}" />
+                <CollectionView Grid.Row="1" ItemsSource="{Binding Commits}" SelectionMode="None">
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate x:DataType="git:CommitInfo">
+                            <VerticalStackLayout Padding="0,4">
+                                <Label Text="{Binding Summary}" FontSize="13" LineBreakMode="TailTruncation" />
+                                <Label Text="{Binding ShortSha}" Style="{StaticResource SecondaryText}" FontFamily="{StaticResource MonoFont}" />
+                            </VerticalStackLayout>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+            </Grid>
+        </Grid>
+
+        <Label Grid.Row="3" Text="{Binding Error}" TextColor="{StaticResource KindDeleted}"
+               IsVisible="{Binding Error, Converter={StaticResource IsNotNullOrEmpty}}" />
+
+        <Grid Grid.Row="4" ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="8">
+            <Button Text="Open in browser instead" Command="{Binding OpenInBrowserCommand}" Style="{StaticResource SecondaryButton}" />
+            <ActivityIndicator Grid.Column="1" IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}" HeightRequest="20" WidthRequest="20" HorizontalOptions="End" />
+            <Button Grid.Column="2" Text="Cancel" Command="{Binding CloseCommand}" Style="{StaticResource SecondaryButton}" />
+            <Button Grid.Column="3" Text="{Binding CreateButtonText}" Command="{Binding CreateCommand}" FontAttributes="Bold"
+                    IsEnabled="{Binding IsBusy, Converter={StaticResource InvertBool}}" />
+        </Grid>
+    </Grid>
+</ContentPage>

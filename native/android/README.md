@@ -16,4 +16,4 @@ ANDROID_NDK_HOME=/path/to/android-ndk build/build-libgit2-android.sh native/andr
 
 When LibGit2Sharp is updated, its LibGit2Sharp.NativeBinaries package names the libgit2 commit it needs
 (`libgit2/libgit2_hash.txt`): change `LIBGIT2_COMMIT` in the script to match, rebuild, and update the file name in
-`GitLabDesktop/GitLabDesktop.csproj`.
+`CommitDesk/CommitDesk.csproj`.

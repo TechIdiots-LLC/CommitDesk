@@ -21,7 +21,7 @@ jobs:
       - name: Get version and check GitHub releases
         id: check
         run: |
-          VERSION=$(grep -oP '<ApplicationDisplayVersion>\K[^<]+' GitLabDesktop/GitLabDesktop.csproj | head -1)
+          VERSION=$(grep -oP '<ApplicationDisplayVersion>\K[^<]+' CommitDesk/CommitDesk.csproj | head -1)
 
           if echo "$VERSION" | grep -q -- '-'; then
             RELEASE_TYPE="prerelease"
@@ -66,7 +66,7 @@ jobs:
           dotnet-version: '10.0.x'
 
       - name: Run tests
-        run: dotnet test GitLabDesktop.Core.Tests/GitLabDesktop.Core.Tests.csproj -c Release
+        run: dotnet test CommitDesk.Core.Tests/CommitDesk.Core.Tests.csproj -c Release
 
   build-windows:
     name: Build Windows release (${{ matrix.rid }})
@@ -88,12 +88,12 @@ jobs:
           dotnet-version: '10.0.x'
 
       - name: Restore workloads
-        run: dotnet workload restore GitLabDesktop.sln
+        run: dotnet workload restore CommitDesk.sln
 
       - name: Publish ${{ matrix.rid }}
         # See ci.yml for the reasoning behind each switch.
         run: |
-          dotnet publish GitLabDesktop/GitLabDesktop.csproj `
+          dotnet publish CommitDesk/CommitDesk.csproj `
             -f net10.0-windows10.0.19041.0 `
             -c Release `
             -r ${{ matrix.rid }} `
@@ -109,14 +109,14 @@ jobs:
         env:
           SIG_PFX_B64: ${{ secrets.SIG_PFX }}
           SIG_PFX_PASS: ${{ secrets.SIG_PFX_PASS }}
-        run: ./build/Sign-Files.ps1 -Path "./publish/${{ matrix.rid }}/GitLabDesktop.exe"
+        run: ./build/Sign-Files.ps1 -Path "./publish/${{ matrix.rid }}/CommitDesk.exe"
 
       - name: Package release artifact (${{ matrix.rid }})
         shell: pwsh
         run: |
           Compress-Archive `
             -Path "./publish/${{ matrix.rid }}/*" `
-            -DestinationPath "./GitLabDesktop-v${{ needs.release-check.outputs.version }}-${{ matrix.rid }}.zip"
+            -DestinationPath "./CommitDesk-v${{ needs.release-check.outputs.version }}-${{ matrix.rid }}.zip"
 
       - name: Build installer (${{ matrix.rid }})
         # NSIS installer (Start Menu shortcut, uninstaller) alongside the portable zip; build/ is shared with GitLab.
@@ -128,10 +128,10 @@ jobs:
           if (-not (Get-Command makensis.exe -ErrorAction SilentlyContinue) -and -not (Test-Path 'C:\Program Files (x86)\NSIS\makensis.exe')) {
             choco install nsis -y --no-progress
           }
-          $setup = "./GitLabDesktop-v${{ needs.release-check.outputs.version }}-${{ matrix.rid }}-setup.exe"
-          ./build/Build-Installer.ps1 -SourceDir "./publish/${{ matrix.rid }}" -AppName "GitLab Desktop" -AppExe GitLabDesktop.exe `
+          $setup = "./CommitDesk-v${{ needs.release-check.outputs.version }}-${{ matrix.rid }}-setup.exe"
+          ./build/Build-Installer.ps1 -SourceDir "./publish/${{ matrix.rid }}" -AppName "CommitDesk" -AppExe CommitDesk.exe `
             -Version "${{ needs.release-check.outputs.version }}" -Arch ("${{ matrix.rid }}" -replace '^win-', '') `
-            -Icon "./publish/${{ matrix.rid }}/GitLabDesktop.ico" -OutFile $setup
+            -Icon "./publish/${{ matrix.rid }}/CommitDesk.ico" -OutFile $setup
           ./build/Sign-Files.ps1 -Path $setup
 
       - name: Upload build artifact (${{ matrix.rid }})
@@ -139,8 +139,8 @@ jobs:
         with:
           name: release-artifact-windows-${{ matrix.rid }}
           path: |
-            GitLabDesktop-v${{ needs.release-check.outputs.version }}-${{ matrix.rid }}.zip
-            GitLabDesktop-v${{ needs.release-check.outputs.version }}-${{ matrix.rid }}-setup.exe
+            CommitDesk-v${{ needs.release-check.outputs.version }}-${{ matrix.rid }}.zip
+            CommitDesk-v${{ needs.release-check.outputs.version }}-${{ matrix.rid }}-setup.exe
           retention-days: 7
 
   build-android:
@@ -179,14 +179,14 @@ jobs:
       - name: Restore
         if: steps.keystore.outputs.present == 'true'
         run: |
-          dotnet workload restore GitLabDesktop.sln
-          dotnet restore GitLabDesktop.sln
+          dotnet workload restore CommitDesk.sln
+          dotnet restore CommitDesk.sln
 
       - name: Decode release keystore
         if: steps.keystore.outputs.present == 'true'
         shell: pwsh
         run: |
-          $path = Join-Path $env:RUNNER_TEMP 'gitlabdesktop-release.keystore'
+          $path = Join-Path $env:RUNNER_TEMP 'commitdesk-release.keystore'
           [IO.File]::WriteAllBytes($path, [Convert]::FromBase64String($env:KEYSTORE_B64))
           echo "ANDROID_KEYSTORE_PATH=$path" >> $env:GITHUB_ENV
 
@@ -208,7 +208,7 @@ jobs:
           # The key password defaults to the keystore password; set ANDROID_KEY_PASSWORD only if they differ.
           KEY_PASS: ${{ secrets.ANDROID_KEY_PASSWORD || secrets.ANDROID_KEYSTORE_PASSWORD }}
         run: |
-          dotnet publish GitLabDesktop/GitLabDesktop.csproj `
+          dotnet publish CommitDesk/CommitDesk.csproj `
             -f net10.0-android36.0 `
             -c Release `
             -p:AndroidKeyStore=true `
@@ -227,14 +227,14 @@ jobs:
             $apk = Get-ChildItem -Path "./publish/android" -Filter "*.apk" -Recurse | Select-Object -First 1
           }
           if (-not $apk) { throw "No APK found under ./publish/android" }
-          Copy-Item $apk.FullName -Destination "./GitLabDesktop-v${{ needs.release-check.outputs.version }}-android-preview.apk"
+          Copy-Item $apk.FullName -Destination "./CommitDesk-v${{ needs.release-check.outputs.version }}-android-preview.apk"
 
       - name: Upload build artifact
         if: steps.keystore.outputs.present == 'true'
         uses: actions/upload-artifact@v7
         with:
           name: release-artifact-android
-          path: GitLabDesktop-v${{ needs.release-check.outputs.version }}-android-preview.apk
+          path: CommitDesk-v${{ needs.release-check.outputs.version }}-android-preview.apk
           retention-days: 7
 
   build-macos:
@@ -258,7 +258,7 @@ jobs:
         # Pinned workload set: 10.0.401.1 moved the Apple SDKs to 27.0, which require Xcode 27, and GitHub only has
         # Xcode 27 as a beta (the xcode-27 preview image). 10.0.401 builds with Xcode 26.6. Drop the pin (and the
         # SDK band above) once macos-26 ships a stable Xcode 27. The version must match the SDK band (10.0.4xx).
-        run: dotnet workload restore GitLabDesktop.sln --version 10.0.401
+        run: dotnet workload restore CommitDesk.sln --version 10.0.401
 
       - name: Select the newest stable Xcode
         # See ci.yml
@@ -304,7 +304,7 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: release-artifact-macos
-          path: GitLabDesktop-v${{ needs.release-check.outputs.version }}-macos.dmg
+          path: CommitDesk-v${{ needs.release-check.outputs.version }}-macos.dmg
           retention-days: 7
 
   release:
@@ -339,7 +339,7 @@ jobs:
         uses: ncipollo/release-action@v1
         with:
           tag:        v${{ needs.release-check.outputs.version }}
-          name:       GitLab Desktop v${{ needs.release-check.outputs.version }}
+          name:       CommitDesk v${{ needs.release-check.outputs.version }}
           bodyFile:   changelog_for_version.md
           # Every file the build jobs produced: Windows zips + installers, the macOS .dmg, and the Android APK when a
           # keystore is configured.
