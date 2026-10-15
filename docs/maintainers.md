@@ -185,6 +185,10 @@ GitLab's trademark guidelines allow saying the app works with GitLab, but not us
 - **Category:** Tools. **Contact:** the forum or project issues.
 - **Privacy policy URL:** `https://gitlab.techidiots.net/techidiots-llc/commitdesk/-/blob/main/docs/privacy.md`.
 
+The privacy policy ([privacy.md](privacy.md)) is written so other TechIdiots apps (VistumblerMAUI, for example) can
+reuse it: the sections "What the app stores on your device", "What the app sends, and to whom" and "Location data", and
+the trademark line at the end, are specific to CommitDesk; the rest applies to any of the apps as it is.
+
 #### Policy forms in Play Console
 
 | Form | Answer |

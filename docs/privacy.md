@@ -1,7 +1,3 @@
-<!--
-  Written to be reused for other TechIdiots LLC apps (e.g. VistumblerMAUI): the sections outside the "APP-SPECIFIC" markers
-  apply to any of them as they are; replace what is between the markers, and the app name, for each app.
--->
 # CommitDesk privacy policy
 
 *Effective 14 October 2026.*
@@ -15,7 +11,6 @@ information the app handles, where it goes, and the choices you have.
   and no tracking in the app.
 - What the app stores stays on your device, and it only sends information to the servers you choose to use with it.
 
-<!-- APP-SPECIFIC: what the app stores, what it sends, and to whom. Replace this section for another app. -->
 
 ## What the app stores on your device
 
@@ -44,7 +39,6 @@ without them:
 
 CommitDesk does not use your location.
 
-<!-- END APP-SPECIFIC -->
 
 ## Third-party services
 
@@ -77,7 +71,5 @@ mentioned in the app's release notes.
 Questions about this policy: contact us through [our forum](https://forum.techidiots.net/forum/) or open an issue on the
 [CommitDesk project](https://gitlab.techidiots.net/techidiots-llc/commitdesk/-/issues).
 
-<!-- APP-SPECIFIC -->
 *GITLAB is a trademark of GitLab Inc. in the United States and other countries and regions. CommitDesk is not affiliated
 with GitLab Inc. or GitHub, Inc.*
-<!-- END APP-SPECIFIC -->
