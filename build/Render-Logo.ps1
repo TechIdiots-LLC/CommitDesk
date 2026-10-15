@@ -24,10 +24,10 @@ param(
 $ErrorActionPreference = 'Stop'
 Add-Type -AssemblyName System.Drawing
 $Root = (Resolve-Path $Root).Path
-$svg = Join-Path $Root 'Logo\commitdesk-logo.svg'
+$logoSvg = Join-Path $Root 'Logo\commitdesk-logo.svg'   # not $svg: PowerShell names ignore case, so that would be $Svg
 if ($Svg) {
-    Copy-Item (Resolve-Path $Svg).Path $svg -Force
-    Write-Host "copied $Svg to $svg"
+    Copy-Item (Resolve-Path $Svg).Path $logoSvg -Force
+    Write-Host "copied $Svg to $logoSvg"
 }
 
 $edge = @("${env:ProgramFiles(x86)}\Microsoft\Edge\Application\msedge.exe", "$env:ProgramFiles\Microsoft\Edge\Application\msedge.exe") |
@@ -38,7 +38,7 @@ if (-not $edge) { throw 'Microsoft Edge not found; it draws the SVG.' }
 $work = Join-Path ([IO.Path]::GetTempPath()) "commitdesk-logo-$PID"
 New-Item -ItemType Directory -Force $work | Out-Null
 $master = Join-Path $work 'logo-1024.png'
-$url = 'file:///' + ($svg -replace '\\', '/')
+$url = 'file:///' + ($logoSvg -replace '\\', '/')
 $edgeArgs = @('--headless=new', '--disable-gpu', '--hide-scrollbars', "--user-data-dir=$work\profile",
     '--default-background-color=00000000', '--force-device-scale-factor=2', '--window-size=512,512',
     "--screenshot=$master", $url)
