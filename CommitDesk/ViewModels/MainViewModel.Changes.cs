@@ -316,6 +316,19 @@ public sealed partial class MainViewModel
     public Task CopyFilePathAsync(ChangedFileViewModel file, bool relative)
         => _platform.CopyAsync(relative ? file.Change.Path : FullPath(file));
 
+    /// <summary>Right-click on the file name above the diff: "full", "relative" or "name".</summary>
+    [RelayCommand]
+    Task CopySelectedChangePath(string what)
+    {
+        if (SelectedChange is not { } file || Repo is null) return Task.CompletedTask;
+        return what switch
+        {
+            "relative" => CopyAsync(file.Change.Path, "the relative path"),
+            "name" => CopyAsync(file.Change.FileName, "the file name"),
+            _ => CopyAsync(FullPath(file), "the path"),
+        };
+    }
+
     public Task ShowFileInFolderAsync(ChangedFileViewModel file) => TryPlatform(() => _platform.ShowInFileManager(FullPath(file)));
 
     public Task OpenFileInEditorAsync(ChangedFileViewModel file) => TryPlatform(() => _platform.OpenInEditor(FullPath(file)));

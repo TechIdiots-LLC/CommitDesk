@@ -29,13 +29,27 @@
                         <Label Grid.Column="1" Text="{Binding OldLineNumber}" Style="{StaticResource DiffLineNumber}" />
                         <Label Grid.Column="2" Text="{Binding NewLineNumber}" Style="{StaticResource DiffLineNumber}" />
 
+                        <!-- Lines dragged over to copy -->
+                        <BoxView Grid.Column="3" Color="#553D8BFD" IsVisible="{Binding IsHighlighted}" />
+
+                        <!-- Press and drag over the text to highlight lines; right-click or Ctrl+C copies them -->
                         <Label Grid.Column="3"
                                Text="{Binding Text}"
                                FontFamily="{StaticResource MonoFont}"
                                FontSize="12"
                                Padding="8,1"
                                LineBreakMode="CharacterWrap"
-                               TextColor="{Binding Kind, Converter={StaticResource DiffLineTextColor}}" />
+                               TextColor="{Binding Kind, Converter={StaticResource DiffLineTextColor}}">
+                            <Label.GestureRecognizers>
+                                <PointerGestureRecognizer PointerPressed="OnLinePressed" PointerEntered="OnLineEntered" PointerReleased="OnLineReleased" />
+                            </Label.GestureRecognizers>
+                            <FlyoutBase.ContextFlyout>
+                                <MenuFlyout>
+                                    <MenuFlyoutItem Text="Copy" Clicked="OnCopyClicked" />
+                                    <MenuFlyoutItem Text="Select all" Clicked="OnSelectAllClicked" />
+                                </MenuFlyout>
+                            </FlyoutBase.ContextFlyout>
+                        </Label>
 
                         <!-- Clicking the gutter / line numbers toggles the line (or the whole hunk on its header) -->
                         <BoxView Grid.Column="0" Grid.ColumnSpan="3" Color="Transparent">

@@ -425,7 +425,15 @@
                 <Grid RowDefinitions="Auto,1,*" IsVisible="{Binding HasChanges}">
                     <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="12" Padding="12,4">
                         <Label Text="{Binding SelectedChange.Change.Path}" FontAttributes="Bold" LineBreakMode="HeadTruncation" VerticalOptions="Center"
-                               ToolTipProperties.Text="{Binding SelectedChange.Change.Path}" />
+                               ToolTipProperties.Text="{Binding SelectedChange.Change.Path}">
+                            <FlyoutBase.ContextFlyout>
+                                <MenuFlyout>
+                                    <MenuFlyoutItem Text="Copy file path" Command="{Binding CopySelectedChangePathCommand}" CommandParameter="full" />
+                                    <MenuFlyoutItem Text="Copy relative file path" Command="{Binding CopySelectedChangePathCommand}" CommandParameter="relative" />
+                                    <MenuFlyoutItem Text="Copy file name" Command="{Binding CopySelectedChangePathCommand}" CommandParameter="name" />
+                                </MenuFlyout>
+                            </FlyoutBase.ContextFlyout>
+                        </Label>
                         <Label Grid.Column="1" Text="Click the gutter to include or exclude lines" Style="{StaticResource SecondaryText}" VerticalOptions="Center"
                                IsVisible="{Binding IsChangeText}" />
                         <Button Grid.Column="2" Text="{Binding DiffExpandText}" Command="{Binding ToggleDiffExpandedCommand}"

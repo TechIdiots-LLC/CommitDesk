@@ -3,6 +3,8 @@
 ## master
 ### ✨ Features and improvements
 - _...Add new stuff here..._
+- Copy text from a diff, as in GitHub Desktop: press on the text and drag to highlight lines, then right-click › Copy or press Ctrl+C. Right-click › Select all highlights the whole file. The copied lines leave out the +/- markers.
+- Right-click the file name above a diff to copy its path, relative path or file name.
 
 ### 🐞 Bug fixes
 - _...Add new stuff here..._

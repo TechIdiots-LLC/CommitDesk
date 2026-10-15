@@ -18,6 +18,9 @@ public sealed partial class DiffLine : ObservableObject
     /// <summary>Whether this added/removed line is included in the next commit.</summary>
     [ObservableProperty] private bool _isSelected;
 
+    /// <summary>Highlighted for copying: dragged over in the diff view (separate from <see cref="IsSelected"/>).</summary>
+    [ObservableProperty] private bool _isHighlighted;
+
     /// <summary>False for read-only diffs (history), so the gutter shows no selection state.</summary>
     public bool IsSelectable { get; set; }
 
