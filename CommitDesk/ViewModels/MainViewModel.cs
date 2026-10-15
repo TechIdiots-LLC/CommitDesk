@@ -217,9 +217,18 @@ public sealed partial class MainViewModel : ObservableObject
 
     string RemoteName => Status?.Upstream is { } u && u.Contains('/') ? u[..u.IndexOf('/')] : "origin";
 
+    /// <summary>
+    /// The branch tracks the remote branch of its own name. One that tracks another (a branch made from origin/main often
+    /// tracks origin/main) counts as not published: its ahead count is against that other branch, and pushing doesn't
+    /// change it, so the push button would never clear. Publishing pushes it under its own name and tracks that.
+    /// </summary>
+    bool IsPublished => Status is { Branch: { } b, Upstream: { } u } && u.Contains('/') && u[(u.IndexOf('/') + 1)..] == b;
+
+    bool NeedsPublishing => Status is { Branch: not null } && !IsPublished;
+
     public string SyncTitle => Status switch
     {
-        { Branch: not null, Upstream: null } => "Publish branch",
+        _ when NeedsPublishing => "Publish branch",
         { Behind: > 0 } => $"Pull {RemoteName}",
         { Ahead: > 0 } => $"Push {RemoteName}",
         _ => $"Fetch {RemoteName}",
@@ -228,7 +237,8 @@ public sealed partial class MainViewModel : ObservableObject
     public string SyncSubtitle => Status switch
     {
         null => "",
-        { Branch: not null, Upstream: null } => $"Publish this branch to {ProviderName}",
+        { Upstream: null } when NeedsPublishing => $"Publish this branch to {ProviderName}",
+        { Upstream: { } u } when NeedsPublishing => $"Now tracks {u}",
         { Behind: > 0 } s => s.Ahead > 0 ? $"↓{s.Behind}  ↑{s.Ahead}" : $"↓{s.Behind}",
         { Ahead: > 0 } s => $"↑{s.Ahead}",
         _ => _lastFetched is { } t ? $"Last fetched {RelativeTimeConverter.Format(t)}" : "Never fetched",

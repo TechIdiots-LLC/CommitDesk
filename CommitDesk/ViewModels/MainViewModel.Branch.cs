@@ -499,9 +499,9 @@ public sealed partial class MainViewModel
             return;
         }
 
-        if (Status.Upstream is null || Status.Ahead > 0)
+        if (NeedsPublishing || Status.Ahead > 0)
         {
-            var what = Status.Upstream is null ? "has not been published" : $"has {Status.Ahead} unpushed commit(s)";
+            var what = NeedsPublishing ? "has not been published" : $"has {Status.Ahead} unpushed commit(s)";
             if (!await _dialogs.ConfirmAsync("Push first?", $"{branch} {what}. Push it before creating the {name}?", "Push", "Skip"))
             {
                 if (Status.Upstream is null) return;   // the server needs the branch to exist
@@ -509,7 +509,7 @@ public sealed partial class MainViewModel
             else
             {
                 await PushAsync(force: false);
-                if (Status?.Upstream is null || Status.Ahead > 0) return;   // push failed
+                if (NeedsPublishing || Status?.Ahead > 0) return;   // push failed
             }
         }
 

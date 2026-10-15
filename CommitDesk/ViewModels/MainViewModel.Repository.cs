@@ -129,7 +129,7 @@ public sealed partial class MainViewModel
     Task Sync() => Status switch
     {
         null => Task.CompletedTask,
-        { Branch: not null, Upstream: null } => PushAsync(force: false),
+        _ when NeedsPublishing => PushAsync(force: false),
         { Behind: > 0 } => Pull(),
         { Ahead: > 0 } => PushAsync(force: false),
         _ => Fetch(),
@@ -142,7 +142,7 @@ public sealed partial class MainViewModel
     [RelayCommand(CanExecute = nameof(CanForcePush))]
     async Task ForcePush()
     {
-        if (Status is not { Branch: { } branch, Upstream: not null }) return;
+        if (Status is not { Branch: { } branch } || !IsPublished) return;
         if (!await _dialogs.ConfirmAsync("Force push?",
                 $"This replaces {branch} on {RemoteName} with your local branch. " +
                 $"Any commits on {RemoteName} that aren't on your branch will be lost.", "Force push"))
@@ -150,13 +150,14 @@ public sealed partial class MainViewModel
         await PushAsync(force: true);
     }
 
-    bool CanForcePush() => Status is { Branch: not null, Upstream: not null, Ahead: > 0 };
+    bool CanForcePush() => IsPublished && Status is { Ahead: > 0 };
 
     async Task PushAsync(bool force)
     {
         if (Repo is null || !await RequireBranchAsync()) return;
         var status = Status!;
-        if (!force && status.Behind > 0 && status.Ahead > 0)
+        var publish = NeedsPublishing;   // counts against another branch don't matter: it's pushed under its own name
+        if (!force && !publish && status.Behind > 0 && status.Ahead > 0)
         {
             var choice = await _dialogs.ChooseAsync(
                 $"{status.Branch} has diverged from {status.Upstream}",
@@ -166,11 +167,11 @@ public sealed partial class MainViewModel
             force = true;
         }
         var rejected = false;
-        await RunAsync(status.Upstream is null ? "Publishing branch…" : "Pushing…", async () =>
+        await RunAsync(publish ? "Publishing branch…" : "Pushing…", async () =>
         {
             try
             {
-                await Repo.PushAsync(RemoteName, status.Branch!, setUpstream: status.Upstream is null, force);
+                await Repo.PushAsync(RemoteName, status.Branch!, setUpstream: publish, force);
                 _lastFetched = DateTimeOffset.Now;
             }
             catch (GitException ex) when (GitErrors.IsPushRejectedAsBehind(ex.Message))
