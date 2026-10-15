@@ -132,6 +132,21 @@ public sealed class AppSettings
         set => Preferences.Set("repositories", JsonSerializer.Serialize(value));
     }
 
+    /// <summary>Repository folder → its project's name on the server, when that differs from the folder name.</summary>
+    public Dictionary<string, string> RepositoryNames
+    {
+        get
+        {
+            try
+            {
+                return JsonSerializer.Deserialize<Dictionary<string, string>>(Preferences.Get("repository_names", "{}")) is { } names
+                    ? new(names, StringComparer.OrdinalIgnoreCase) : new(StringComparer.OrdinalIgnoreCase);
+            }
+            catch (JsonException) { return new(StringComparer.OrdinalIgnoreCase); }
+        }
+        set => Preferences.Set("repository_names", JsonSerializer.Serialize(value));
+    }
+
     // ── Accounts ─────────────────────────────────────────────────────────────
 
     // Cached because SecureStorage is async and git needs the secrets synchronously for every command. Replaced, never

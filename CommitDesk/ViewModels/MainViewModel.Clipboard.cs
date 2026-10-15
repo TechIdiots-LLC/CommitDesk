@@ -26,7 +26,7 @@ public sealed partial class MainViewModel
     // ── Repository ───────────────────────────────────────────────────────────
 
     [RelayCommand]
-    Task CopyRepositoryName() => CopyAsync(Repo?.Name, "the repository name");
+    Task CopyRepositoryName() => CopyAsync(Repo is null ? null : RepoName,"the repository name");
 
     [RelayCommand]
     Task CopyRepositoryPath() => CopyAsync(Repo?.Path, "the repository path");

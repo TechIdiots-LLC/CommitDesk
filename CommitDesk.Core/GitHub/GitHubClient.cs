@@ -109,6 +109,7 @@ public sealed class GitHubClient(HttpClient http) : IHostingService
     sealed class User { public string Login { get; set; } = ""; public string? Name { get; set; } }
     sealed class RepoInfo
     {
+        public string Name { get; set; } = "";
         public string FullName { get; set; } = "";
         public string? Description { get; set; }
         public string CloneUrl { get; set; } = "";
@@ -164,6 +165,13 @@ public sealed class GitHubClient(HttpClient http) : IHostingService
 
     public async Task<string?> GetDefaultBranchAsync(string projectPath, CancellationToken ct = default)
         => (await GetAsync<RepoInfo>($"repos/{Repo(projectPath)}", ct)).DefaultBranch;
+
+    // GitHub redirects a renamed repository's old path to it
+    public async Task<ProjectDetails> GetProjectDetailsAsync(string projectPath, CancellationToken ct = default)
+    {
+        var r = await GetAsync<RepoInfo>($"repos/{Repo(projectPath)}", ct);
+        return new ProjectDetails(r.Name, r.DefaultBranch);
+    }
 
     public async Task<IReadOnlyList<string>> ListBranchesAsync(string projectPath, CancellationToken ct = default)
     {

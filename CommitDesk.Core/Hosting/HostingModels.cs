@@ -11,6 +11,9 @@ public sealed record HostedUser(string Login, string Name);
 /// <summary>A project (GitLab) or repository (GitHub) that can be cloned.</summary>
 public sealed record HostedProject(string FullName, string? Description, string HttpUrl, string SshUrl, string WebUrl);
 
+/// <summary>The remote's project as it is now: its name (it may have been renamed since the clone) and default branch.</summary>
+public sealed record ProjectDetails(string Name, string? DefaultBranch);
+
 public enum ChangeRequestState { Open, Merged, Closed }
 
 /// <summary>A merge request (GitLab) or pull request (GitHub); open unless <paramref name="State"/> says otherwise.</summary>
@@ -93,6 +96,7 @@ public interface IHostingService
     Task<HostedUser> GetUserAsync(CancellationToken ct = default);
     Task<IReadOnlyList<HostedProject>> ListProjectsAsync(string? search, CancellationToken ct = default);
     Task<string?> GetDefaultBranchAsync(string projectPath, CancellationToken ct = default);
+    Task<ProjectDetails> GetProjectDetailsAsync(string projectPath, CancellationToken ct = default);
 
     /// <summary>Branch names with the default branch first.</summary>
     Task<IReadOnlyList<string>> ListBranchesAsync(string projectPath, CancellationToken ct = default);

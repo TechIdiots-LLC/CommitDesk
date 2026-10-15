@@ -24,8 +24,8 @@ public sealed partial class MainViewModel
             new("Clone…", null, CloneRepositoryMarker),
         ];
         var items = Repositories
-            .OrderBy(Path.GetFileName, StringComparer.OrdinalIgnoreCase)
-            .Select(p => new PickerItem(Path.GetFileName(p), p, p,
+            .OrderBy(DisplayName, StringComparer.OrdinalIgnoreCase)
+            .Select(p => new PickerItem(DisplayName(p), p, p,
                 string.Equals(p, Repo?.Path, StringComparison.OrdinalIgnoreCase) ? "current" : null));
 
         var picked = await _dialogs.DropdownAsync<object>(DropdownAnchor.Repository, "Repositories", items, actions,
@@ -101,8 +101,9 @@ public sealed partial class MainViewModel
     {
         if (Repo is null) return;
         if (!await _dialogs.ConfirmAsync("Remove repository",
-                $"Remove {Repo.Name} from the list? The files on disk are not deleted.", "Remove"))
+                $"Remove {RepoName} from the list? The files on disk are not deleted.", "Remove"))
             return;
+        SetDisplayName(Repo.Path, FolderName(Repo.Path));   // forget its saved name
         Repositories.Remove(Repo.Path);
         _settings.HiddenRepositories = [.. _settings.HiddenRepositories, Repo.Path];
         _settings.Repositories = [.. Repositories];

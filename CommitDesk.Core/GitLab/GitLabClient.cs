@@ -130,6 +130,13 @@ public sealed class GitLabClient(HttpClient http) : IHostingService
     public async Task<string?> GetDefaultBranchAsync(string projectPath, CancellationToken ct = default)
         => (await GetProjectAsync(projectPath, ct)).DefaultBranch;
 
+    // The API follows a renamed project's redirect from its old path
+    public async Task<ProjectDetails> GetProjectDetailsAsync(string projectPath, CancellationToken ct = default)
+    {
+        var p = await GetProjectAsync(projectPath, ct);
+        return new ProjectDetails(p.Name, p.DefaultBranch);
+    }
+
     public async Task<IReadOnlyList<string>> ListBranchesAsync(string projectPath, CancellationToken ct = default)
         => (await GetBranchesAsync(projectPath, ct))
             .OrderByDescending(b => b.Default).ThenBy(b => b.Name, StringComparer.Ordinal)

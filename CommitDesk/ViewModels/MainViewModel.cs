@@ -132,7 +132,27 @@ public sealed partial class MainViewModel : ObservableObject
     public bool HasRepository => Repo is not null;
     public bool NoRepository => Repo is null;
     public bool HasRemote => Remote is not null;
-    public string RepoName => Repo?.Name ?? "No repository";
+    public string RepoName => Repo is null ? "No repository" : DisplayName(Repo.Path);
+
+    Dictionary<string, string>? _repoNames;
+
+    /// <summary>Like GitHub Desktop: the project's name on the server (it follows renames), else the folder name.</summary>
+    string DisplayName(string path)
+    {
+        _repoNames ??= _settings.RepositoryNames;
+        return _repoNames.TryGetValue(path, out var name) ? name : FolderName(path);
+    }
+
+    static string FolderName(string path) => Path.GetFileName(path.TrimEnd('\\', '/'));
+
+    void SetDisplayName(string path, string name)
+    {
+        if (DisplayName(path) == name) return;
+        if (name == FolderName(path)) _repoNames!.Remove(path);
+        else _repoNames![path] = name;
+        _settings.RepositoryNames = _repoNames!;
+        OnPropertyChanged(nameof(RepoName));
+    }
 
     public string BranchName => Status switch
     {
@@ -336,8 +356,11 @@ public sealed partial class MainViewModel : ObservableObject
         {
             if (_defaultBranch is null)
             {
-                _defaultBranch = await service.GetDefaultBranchAsync(remote.ProjectPath);
+                var project = await service.GetProjectDetailsAsync(remote.ProjectPath);
+                if (Remote != remote) return;   // moved on meanwhile
+                _defaultBranch = project.DefaultBranch;
                 OnPropertyChanged(nameof(UpdateFromDefaultText));
+                if (!string.IsNullOrWhiteSpace(project.Name)) SetDisplayName(Repo!.Path, project.Name);
             }
             var crTask = service.FindOpenChangeRequestAsync(remote.ProjectPath, branch);
             var ciTask = service.GetCiStatusAsync(remote.ProjectPath, branch);
