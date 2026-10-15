@@ -157,7 +157,12 @@ ci-windows:
 
 ci-android:
   stage: build
-  rules: *ci-rules
+  rules:
+    - !reference [.ci-rules]
+    # Any other branch: start it by hand (the play button) to get a test APK without a merge request
+    - if: $CI_COMMIT_BRANCH && $BUMP_VERSION == "none"
+      when: manual
+      allow_failure: true
   script:
     - *dotnet-windows
     - dotnet restore CommitDesk.sln

@@ -6,6 +6,8 @@ on:
       - main
       - master
   pull_request:
+  # Actions › CI › Run workflow: build any branch (e.g. for a test APK) without a pull request
+  workflow_dispatch:
 
 concurrency:
   group: ci-${{ github.ref }}
