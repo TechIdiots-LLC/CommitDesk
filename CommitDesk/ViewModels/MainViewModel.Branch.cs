@@ -142,6 +142,17 @@ public sealed partial class MainViewModel
             return;
         }
 
+        // git checks a branch out in one folder at a time: offer the worktree folder that has it instead
+        if (await Repo!.GetOtherWorktreeOfBranchAsync(targetName) is { } folder)
+        {
+            if (await _dialogs.ConfirmAsync("Branch is open in another folder",
+                    $"{targetName} is checked out in another worktree of this repository:\n{folder}\n\n" +
+                    "A branch can only be checked out in one folder at a time. Open that folder instead?", "Open folder"))
+                await RunAsync("Opening…", () => OpenRepositoryAsync(folder), refresh: false);
+            return;
+        }
+
+        var stashed = false;
         if (ChangedFiles.Count > 0 && current is not null && current != targetName)
         {
             var leave = $"Leave my changes on {current}";
@@ -150,17 +161,27 @@ public sealed partial class MainViewModel
             if (choice is null) return;
             if (choice == leave)
             {
-                var ok = false;
                 await RunAsync("Stashing…", async () =>
                 {
-                    await Repo!.StashAsync(StashMessageFor(current));
-                    ok = true;
+                    await Repo.StashAsync(StashMessageFor(current));
+                    stashed = true;
                 }, refresh: false);
-                if (!ok) return;
+                if (!stashed) return;
             }
         }
 
-        await RunAsync($"Switching to {targetName}…", checkout);
+        var switched = false;
+        await RunAsync($"Switching to {targetName}…", async () =>
+        {
+            await checkout();
+            switched = true;
+        });
+        if (!switched)
+        {
+            // Still on this branch: put back the changes that were stashed to leave them here
+            if (stashed) await RunAsync("Restoring changes…", () => Repo.PopStashAsync("stash@{0}"));
+            return;
+        }
 
         // Offer back changes that were left on this branch earlier.
         var stashes = await Repo!.GetStashesAsync();

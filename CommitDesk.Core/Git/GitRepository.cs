@@ -409,6 +409,26 @@ public sealed partial class GitRepository(GitRunner git, string path)
             ? RunMovingHeadAsync("switch", "-c", branch.NameWithoutRemote, "--track", branch.Name)
             : RunMovingHeadAsync("switch", branch.Name);
 
+    /// <summary>
+    /// The folder of another worktree that has the branch checked out (git won't check it out twice), or null.
+    /// </summary>
+    public async Task<string?> GetOtherWorktreeOfBranchAsync(string branch)
+    {
+        if (UseLibGit2) return null;   // not created by the app; git CLI repositories only
+        var result = await Run(["worktree", "list", "--porcelain"], throwOnError: false);
+        if (!result.Success) return null;
+        string? folder = null;
+        foreach (var line in result.StdOut.Split('\n', StringSplitOptions.TrimEntries))
+        {
+            if (line.StartsWith("worktree ", StringComparison.Ordinal)) folder = line["worktree ".Length..];
+            else if (line == $"branch refs/heads/{branch}" && folder is not null &&
+                     !string.Equals(System.IO.Path.GetFullPath(folder).TrimEnd('\\', '/'), System.IO.Path.GetFullPath(Path).TrimEnd('\\', '/'),
+                         OperatingSystem.IsWindows() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal))
+                return System.IO.Path.GetFullPath(folder);
+        }
+        return null;
+    }
+
     public Task CheckoutCommitAsync(string sha)
         => UseLibGit2 ? Lg2Async(r => { Commands.Checkout(r, r.Lookup<LibGit2Sharp.Commit>(sha)); }) : RunMovingHeadAsync("switch", "--detach", sha);
 
