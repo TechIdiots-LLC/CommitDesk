@@ -66,11 +66,12 @@ public sealed partial class MainViewModel : ObservableObject
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(BranchName), nameof(SyncTitle), nameof(SyncSubtitle), nameof(CommitButtonText),
         nameof(CanCommit), nameof(UpdateFromDefaultText))]
-    [NotifyCanExecuteChangedFor(nameof(ForcePushCommand))]
+    [NotifyCanExecuteChangedFor(nameof(ForcePushCommand), nameof(UndoLastCommitCommand), nameof(RedoCommitCommand))]
     private RepositoryStatus? _status;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasOperation), nameof(OperationBanner), nameof(ShowOperationBanner))]
+    [NotifyCanExecuteChangedFor(nameof(UndoLastCommitCommand), nameof(RedoCommitCommand))]
     private RepositoryOperation _operation;
 
     [ObservableProperty]

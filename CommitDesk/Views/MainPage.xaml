@@ -32,6 +32,12 @@
             <MenuFlyoutItem Text="Exit" Command="{Binding ExitCommand}" />
         </MenuBarItem>
 
+        <!-- No Ctrl+Z / Ctrl+Y: those stay with the text boxes (undoing typing in the commit message) -->
+        <MenuBarItem Text="Edit">
+            <MenuFlyoutItem Text="Undo commit…" Command="{Binding UndoLastCommitCommand}" />
+            <MenuFlyoutItem Text="{Binding RedoCommitText}" Command="{Binding RedoCommitCommand}" />
+        </MenuBarItem>
+
         <MenuBarItem Text="View">
             <MenuFlyoutItem Text="Changes" Command="{Binding ShowChangesCommand}">
                 <MenuFlyoutItem.KeyboardAccelerators><KeyboardAccelerator Modifiers="Ctrl" Key="D1" /></MenuFlyoutItem.KeyboardAccelerators>
@@ -413,6 +419,7 @@
                                 <FlyoutBase.ContextFlyout>
                                     <MenuFlyout>
                                         <MenuFlyoutItem Text="Amend commit…" Clicked="OnAmendCommit" />
+                                        <MenuFlyoutItem Text="Undo commit…" Clicked="OnUndoCommit" />
                                         <MenuFlyoutItem Text="Reset to commit…" Clicked="OnResetToCommit" />
                                         <MenuFlyoutItem Text="Checkout commit" Clicked="OnCheckoutCommit" />
                                         <MenuFlyoutItem Text="Revert changes in commit" Clicked="OnRevertCommit" />

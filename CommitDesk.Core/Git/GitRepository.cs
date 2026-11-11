@@ -487,6 +487,66 @@ public sealed partial class GitRepository(GitRunner git, string path)
     public Task ResetToAsync(string sha)
         => UseLibGit2 ? Lg2Async(r => r.Reset(ResetMode.Mixed, ResolveCommit(r, sha))) : Run("reset", "--mixed", sha);
 
+    /// <summary>
+    /// "Undo commit": moves the branch back to the commit's first parent and keeps its changes as uncommitted changes
+    /// (a mixed reset; the working folder isn't touched). For a merge, the merged changes stay behind as changes.
+    /// Undoing a repository's first commit leaves the branch with no commits. Only the checked-out commit can be
+    /// undone: if HEAD has moved on since <paramref name="commit"/> was read, nothing changes.
+    /// </summary>
+    public async Task UndoCommitAsync(CommitInfo commit)
+    {
+        if (UseLibGit2)
+        {
+            await Lg2Async(r => Lg2UndoCommit(r, commit));
+            return;
+        }
+        var head = (await Run(["rev-parse", "--verify", "-q", "HEAD"], throwOnError: false)).StdOut.Trim();
+        if (head != commit.Sha) throw NotHeadCommit(commit);
+        if (commit.Parents.Count > 0)
+        {
+            await Run("reset", "--mixed", commit.Parents[0]);
+            return;
+        }
+        // The first commit: delete the branch it is on (HEAD keeps naming it, now unborn), and empty the index so
+        // its files show as new.
+        await Run("update-ref", "-d", "HEAD", commit.Sha);
+        await Run("read-tree", "--empty");
+    }
+
+    static void Lg2UndoCommit(Repository repo, CommitInfo commit)
+    {
+        if (repo.Head.Tip?.Sha != commit.Sha) throw NotHeadCommit(commit);
+        if (commit.Parents.Count > 0)
+        {
+            repo.Reset(ResetMode.Mixed, ResolveCommit(repo, commit.Parents[0]));
+            return;
+        }
+        repo.Refs.Remove(repo.Head.CanonicalName);
+        repo.Index.Clear();
+        repo.Index.Write();
+    }
+
+    static GitException NotHeadCommit(CommitInfo commit)
+        => new($"{commit.ShortSha} is no longer the latest commit on this branch, so it wasn't undone.",
+            new GitResult(1, "", ""));
+
+    /// <summary>
+    /// Puts back a commit that <see cref="UndoCommitAsync"/> took off the branch: the branch points at it again and the
+    /// working folder is left alone, so any edits made since stay as uncommitted changes. Refused when the branch has
+    /// moved since the undo (a new commit, a pull), as resetting then would drop those commits from it.
+    /// </summary>
+    public async Task RedoCommitAsync(CommitInfo commit)
+    {
+        var expected = commit.Parents.Count > 0 ? commit.Parents[0] : null;
+        var head = UseLibGit2
+            ? await Lg2Async(r => r.Head.Tip?.Sha)
+            : (await Run(["rev-parse", "--verify", "-q", "HEAD"], throwOnError: false)) is { Success: true } r ? r.StdOut.Trim() : null;
+        if (head != expected)
+            throw new GitException($"The branch has changed since {commit.ShortSha} was undone, so it can't be put back.",
+                new GitResult(1, "", ""));
+        await ResetToAsync(commit.Sha);
+    }
+
     public Task CreateTagAsync(string name, string sha)
         => UseLibGit2 ? Lg2Async(r => { r.ApplyTag(name, sha, RequireSignature(r), name); }) : Run("tag", "-a", name, "-m", name, sha);
 

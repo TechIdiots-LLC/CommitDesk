@@ -3,6 +3,7 @@
 ## master
 ### ✨ Features and improvements
 - _...Add new stuff here..._
+- Undo commit, as in GitHub Desktop: Edit › Undo commit… or right-click the latest commit › Undo commit… takes it off the branch and keeps its changes as uncommitted changes, with its message back in the commit box. Merge commits can be undone too (after a warning), and undoing a commit that was already pushed warns that it stays on the server. Edit › Redo commit puts it back.
 
 ### 🐞 Bug fixes
 - _...Add new stuff here..._

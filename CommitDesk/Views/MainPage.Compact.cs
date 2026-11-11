@@ -186,6 +186,7 @@ public partial class MainPage
             groups.Add(("Branch", [
                 new("Switch branch…", vm.ChooseBranchCommand), new("New branch…", vm.NewBranchCommand),
                 new("Rename…", vm.RenameBranchCommand), new("Delete…", vm.DeleteBranchCommand),
+                new("Undo commit…", vm.UndoLastCommitCommand), new(vm.RedoCommitText, vm.RedoCommitCommand),
                 new("Discard all changes…", vm.DiscardAllChangesCommand), new("Stash all changes", vm.StashAllChangesCommand),
                 new("Restore stashed changes…", vm.RestoreStashCommand),
                 new(vm.UpdateFromDefaultText, vm.UpdateFromDefaultCommand),
@@ -222,6 +223,7 @@ public partial class MainPage
 
     Task ShowCommitActionsAsync(CommitInfo c) => ShowMenuAsync(c.Summary, [
         new("Amend commit…", Run: () => _vm.AmendCommitAsync(c)),
+        new("Undo commit…", Run: () => _vm.UndoCommitAsync(c)),
         new("Reset to commit…", Run: () => _vm.ResetToCommitAsync(c)),
         new("Checkout commit", Run: () => _vm.CheckoutCommitAsync(c)),
         new("Revert changes in commit", Run: () => _vm.RevertCommitAsync(c)),

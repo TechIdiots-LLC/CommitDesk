@@ -115,6 +115,7 @@ public partial class MainPage : ContentPage, IDropdownHost
 
     // ── Commit context menu ──────────────────────────────────────────────────
     void OnAmendCommit(object? s, EventArgs e) => OnCommit(s, _vm.AmendCommitAsync);
+    void OnUndoCommit(object? s, EventArgs e) => OnCommit(s, _vm.UndoCommitAsync);
     void OnResetToCommit(object? s, EventArgs e) => OnCommit(s, _vm.ResetToCommitAsync);
     void OnCheckoutCommit(object? s, EventArgs e) => OnCommit(s, _vm.CheckoutCommitAsync);
     void OnRevertCommit(object? s, EventArgs e) => OnCommit(s, _vm.RevertCommitAsync);

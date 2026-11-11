@@ -164,6 +164,110 @@ public sealed partial class MainViewModel
         IsHistoryTab = false;
     }
 
+    // ── Undo / redo commit ───────────────────────────────────────────────────
+
+    /// <summary>
+    /// The commit Undo last took off a branch, for Edit › Redo, and the message it put in the commit box (cleared
+    /// again by Redo if it hasn't been edited).
+    /// </summary>
+    sealed record UndoneCommit(string RepoPath, string Branch, CommitInfo Commit, (string Summary, string Description)? Message);
+
+    UndoneCommit? _undone;
+
+    public string RedoCommitText => _undone is { } u ? $"Redo commit \"{Shorten(u.Commit.Summary)}\"" : "Redo commit";
+
+    static string Shorten(string text) => text.Length > 40 ? text[..39] + "…" : text;
+
+    bool CanUndoCommit() => Status is { Branch: not null, HeadSha: not null } && !HasOperation;
+
+    /// <summary>Edit › Undo commit: the latest commit on the branch.</summary>
+    [RelayCommand(CanExecute = nameof(CanUndoCommit))]
+    async Task UndoLastCommit()
+    {
+        if (Repo is null || IsBusy) return;
+        if ((await Repo.GetLogAsync(0, 1)).FirstOrDefault() is not { } head) return;
+        await MarkUnpushedAsync([head]);
+        await UndoCommitAsync(head);
+    }
+
+    /// <summary>
+    /// "Undo commit…": takes the latest commit off the branch and leaves its changes as uncommitted changes, with its
+    /// message back in the commit box. Edit › Redo puts it back.
+    /// </summary>
+    public async Task UndoCommitAsync(CommitInfo commit)
+    {
+        if (Repo is null || Status is null) return;
+        if (commit.Sha != Status.HeadSha)
+        {
+            await _dialogs.AlertAsync("Undo commit", "Only the most recent commit on the branch can be undone.");
+            return;
+        }
+        if (!await RequireBranchAsync()) return;
+        if (HasOperation)
+        {
+            await _dialogs.AlertAsync("Undo commit", "Finish or abort the operation in progress first.");
+            return;
+        }
+
+        var warnings = new List<string>();
+        if (commit.IsMerge)
+            warnings.Add("This is a merge commit. Undoing it leaves the merged changes as uncommitted changes; committing " +
+                         "them again makes an ordinary commit, so the merged branch's commits won't be in this branch's history.");
+        if (!commit.IsUnpushed)
+            warnings.Add($"This commit has already been pushed{(Status.Upstream is { } u ? $" to {u}" : "")}. Undoing it " +
+                         "here doesn't remove it from the server: pushing afterwards needs a force push, and pulling brings it back.");
+        if (warnings.Count > 0 &&
+            !await _dialogs.ConfirmAsync(commit.IsMerge ? "Undo merge commit?" : "Undo commit?",
+                string.Join("\n\n", warnings) + "\n\nEdit › Redo commit puts it back.", "Undo"))
+            return;
+
+        var repo = Repo;
+        var branch = Status.Branch!;
+        // The message goes back in the commit box, as in GitHub Desktop, unless something else is being typed there.
+        // Not for a merge: what gets committed again isn't one.
+        var restore = !commit.IsMerge && (IsAmending || (string.IsNullOrWhiteSpace(CommitSummary) && string.IsNullOrWhiteSpace(CommitDescription)));
+        await RunAsync("Undoing commit…", async () =>
+        {
+            var message = restore ? await repo.GetHeadMessageAsync() : null;
+            await repo.UndoCommitAsync(commit);
+            IsAmending = false;
+            (string, string)? restored = null;
+            if (message is not null)
+            {
+                SetCommitMessage(message);
+                restored = (CommitSummary, CommitDescription);
+            }
+            SetUndone(new UndoneCommit(repo.Path, branch, commit, restored));
+        });
+    }
+
+    bool CanRedoCommit() => _undone is { } u && Repo?.Path == u.RepoPath && !HasOperation &&
+                            Status is { } s && s.Branch == u.Branch && s.HeadSha == u.Commit.Parents.FirstOrDefault();
+
+    /// <summary>Edit › Redo commit: puts back the commit Undo took off; edits made since stay as changes.</summary>
+    [RelayCommand(CanExecute = nameof(CanRedoCommit))]
+    Task RedoCommit()
+    {
+        if (!CanRedoCommit() || _undone is not { } u) return Task.CompletedTask;
+        return RunAsync("Redoing commit…", async () =>
+        {
+            await Repo!.RedoCommitAsync(u.Commit);
+            if (u.Message is { } m && CommitSummary == m.Summary && CommitDescription == m.Description)
+            {
+                CommitSummary = "";
+                CommitDescription = "";
+            }
+            SetUndone(null);
+        });
+    }
+
+    void SetUndone(UndoneCommit? undone)
+    {
+        _undone = undone;
+        OnPropertyChanged(nameof(RedoCommitText));
+        RedoCommitCommand.NotifyCanExecuteChanged();
+    }
+
     public async Task ResetToCommitAsync(CommitInfo commit)
     {
         if (!await _dialogs.ConfirmAsync("Reset to commit",

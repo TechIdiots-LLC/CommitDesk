@@ -33,6 +33,21 @@ To change the most recent commit instead, right-click it in [History](history.md
 Changes tab then shows *Amending the last commit*: its summary and description are filled in, and committing replaces
 it with your edits and any changes you tick. **Cancel** stops amending.
 
+### Undoing a commit
+
+**Edit › Undo commit…** (or right-click the latest commit in [History](history.md) › **Undo commit…**) takes the most
+recent commit off the branch. Its changes come back as uncommitted changes, nothing in your working folder is lost, and
+its summary and description are put back in the commit box (unless you'd already started typing a new message).
+
+- A merge commit can be undone too. You're asked first, because the merged changes are left as ordinary changes:
+  committing them again doesn't make a merge.
+- Undo is meant for commits that haven't been pushed (they have an **↑** in History). For one that has, you're
+  warned: it stays on the server, so pushing afterwards needs a force push, and pulling brings it back.
+- Undoing the repository's first commit leaves the branch with no commits and all its files as new.
+
+**Edit › Redo commit** puts the undone commit back, as long as the branch hasn't moved since (no new commit or pull).
+Anything you edited in between stays as uncommitted changes.
+
 ## Image changes
 
 Changed images (PNG, JPEG, GIF, BMP, ICO, WebP and TIFF) are shown as pictures instead of *Binary file changed*:

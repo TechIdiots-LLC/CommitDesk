@@ -20,6 +20,7 @@ Right-click a commit for:
 | Item | What it does |
 | --- | --- |
 | **Amend commit…** | Edit the most recent commit from the Changes tab. If it was already pushed, you're warned that amending rewrites history and needs a force push. |
+| **Undo commit…** | Takes the most recent commit off the branch and keeps its changes as uncommitted changes, with its message back in the commit box. Also in **Edit › Undo commit…**; **Edit › Redo commit** puts it back. See [Undoing a commit](making-changes.md#undoing-a-commit). |
 | **Reset to commit…** | Moves the branch back to this commit. Later commits are undone, but their changes are kept as uncommitted changes. |
 | **Checkout commit** | Checks out this commit without a branch (a "detached HEAD"). Create a branch if you want to keep new commits made there. |
 | **Revert changes in commit** | Makes a new commit that undoes this one. |
