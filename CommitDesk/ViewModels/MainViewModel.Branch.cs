@@ -509,7 +509,7 @@ public sealed partial class MainViewModel
         if (HostingService is not { } service)
         {
             // No account for this server: use the host's own "new merge/pull request" page.
-            await OpenLinkAsync(remote.NewChangeRequestLink(branch, DefaultBranch));
+            await OpenLinkAsync(remote.NewChangeRequestLink(branch, DefaultBranch, await SourceForkAsync()));
             return;
         }
 
@@ -534,10 +534,25 @@ public sealed partial class MainViewModel
             }
         }
 
-        var vm = new CreateChangeRequestViewModel(service, _platform, Repo, remote, RemoteName, branch, DefaultBranch);
+        var vm = new CreateChangeRequestViewModel(service, _platform, Repo, remote, BaseRemoteName, branch, DefaultBranch,
+            await SourceForkAsync());
         await vm.InitializeAsync();
         await _dialogs.PushModalAsync(new CreateChangeRequestPage(vm));
         var created = await vm.Result;
         if (created is not null) ChangeRequest = created;
+    }
+
+    /// <summary>
+    /// The fork the current branch is published in ("you/project"), when the remote it tracks is another project on the
+    /// same server as this one; null for one of the project's own branches. A request from it is made across forks.
+    /// </summary>
+    async Task<string?> SourceForkAsync()
+    {
+        if (Repo is null || Remote is not { } project || Status?.Upstream is null) return null;
+        var tracked = HostedRemote.Parse(await Repo.GetRemoteUrlAsync(RemoteName));
+        return tracked is not null && string.Equals(tracked.Host, project.Host, StringComparison.OrdinalIgnoreCase) &&
+               !string.Equals(tracked.ProjectPath, project.ProjectPath, StringComparison.OrdinalIgnoreCase)
+            ? tracked.ProjectPath
+            : null;
     }
 }

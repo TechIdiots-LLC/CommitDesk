@@ -71,6 +71,11 @@ public sealed record CiStatus(string Status, string WebUrl);
 public sealed class NewChangeRequest
 {
     public string SourceBranch { get; set; } = "";
+    /// <summary>
+    /// The fork the source branch is in ("you/project"), when it isn't in the project the request is made in; null for
+    /// one of the project's own branches.
+    /// </summary>
+    public string? SourceProjectPath { get; set; }
     public string TargetBranch { get; set; } = "";
     public string Title { get; set; } = "";
     public string? Description { get; set; }

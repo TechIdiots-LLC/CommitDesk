@@ -5,6 +5,7 @@
 - _...Add new stuff here..._
 - Undo commit, as in GitHub Desktop: Edit › Undo commit… or right-click the latest commit › Undo commit… takes it off the branch and keeps its changes as uncommitted changes, with its message back in the commit box. Merge commits can be undone too (after a warning), and undoing a commit that was already pushed warns that it stays on the server. Edit › Redo commit puts it back.
 - Publish branches to your fork: Branch › Publish branch to… picks the remote a branch goes to, and offers your fork on GitHub/GitLab (added as a remote) when the clone's origin is the project itself. A "Publish new branches to" option in Repository settings makes the fork the default, so a branch made from the project's own branch is published to your fork instead of pushed back to the project. The default branch and branches from other people's forks keep their remote.
+- Create pull request (merge request) on a branch in your fork makes it from the fork into the project, on GitHub and GitLab, and offers the project's branch of the same name as a target. Without an account, the link opens the right compare page.
 
 ### 🐞 Bug fixes
 - _...Add new stuff here..._

@@ -18,11 +18,13 @@ public sealed partial class CreateChangeRequestViewModel(
     HostedRemote remote,
     string remoteName,
     string sourceBranch,
-    string defaultTarget) : ModalViewModel<ChangeRequest?>
+    string defaultTarget,
+    string? sourceProject = null) : ModalViewModel<ChangeRequest?>
 {
     protected override ChangeRequest? CancelledResult => null;
 
-    public string SourceBranch => sourceBranch;
+    /// <summary>The branch, with the fork it's in when that isn't the project ("you/project:branch").</summary>
+    public string SourceBranch => sourceProject is null ? sourceBranch : $"{sourceProject}:{sourceBranch}";
     public string ProjectPath => $"{remote.ProviderName} · {remote.ProjectPath}";
     public string Heading => $"Create {remote.ChangeRequestName}";
     public string CreateButtonText => Heading;
@@ -48,7 +50,8 @@ public sealed partial class CreateChangeRequestViewModel(
     {
         try
         {
-            foreach (var b in (await service.ListBranchesAsync(remote.ProjectPath)).Where(b => b != sourceBranch))
+            // A branch can't be merged into itself; from a fork, the project's branch of the same name is a fine target
+            foreach (var b in (await service.ListBranchesAsync(remote.ProjectPath)).Where(b => b != sourceBranch || sourceProject is not null))
                 TargetBranches.Add(b);
             if (!TargetBranches.Contains(TargetBranch) && TargetBranches.Count > 0)
                 TargetBranch = TargetBranches[0];
@@ -112,6 +115,7 @@ public sealed partial class CreateChangeRequestViewModel(
             var created = await service.CreateChangeRequestAsync(remote.ProjectPath, new NewChangeRequest
             {
                 SourceBranch = sourceBranch,
+                SourceProjectPath = sourceProject,
                 TargetBranch = TargetBranch,
                 Title = Title.Trim(),
                 Description = string.IsNullOrWhiteSpace(Description) ? null : Description.Trim(),
@@ -136,7 +140,7 @@ public sealed partial class CreateChangeRequestViewModel(
     [RelayCommand]
     async Task OpenInBrowser()
     {
-        if (remote.NewChangeRequestLink(sourceBranch, TargetBranch) is { } link) await platform.OpenUrlAsync(link);
+        if (remote.NewChangeRequestLink(sourceBranch, TargetBranch, sourceProject) is { } link) await platform.OpenUrlAsync(link);
         Cancel();
     }
 

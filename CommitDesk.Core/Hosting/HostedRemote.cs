@@ -154,7 +154,18 @@ public sealed record HostedRemote(HostingKind Kind, string Host, string ProjectP
     };
 
     /// <summary>The host's own "new merge/pull request" page, prefilled with the branches.</summary>
-    public string? NewChangeRequestLink(string source, string target) => Kind switch
+    /// <remarks>
+    /// For a branch in a fork (<paramref name="sourceProject"/>), GitHub's compare page takes "owner:branch". GitLab's
+    /// page for this project can't pick a fork's branch, so it opens the fork's own new merge request page.
+    /// </remarks>
+    public string? NewChangeRequestLink(string source, string target, string? sourceProject = null) => (Kind, sourceProject) switch
+    {
+        (HostingKind.GitHub, { } fork) => $"{WebUrl}/compare/{Ref(target)}...{Uri.EscapeDataString(fork.Split('/')[0])}:{Ref(source)}?expand=1",
+        (HostingKind.GitLab, { } fork) => $"{WebUrl[..^ProjectPath.Length]}{fork}/-/merge_requests/new?merge_request%5Bsource_branch%5D={Uri.EscapeDataString(source)}",
+        _ => OwnBranchChangeRequestLink(source, target),
+    };
+
+    string? OwnBranchChangeRequestLink(string source, string target) => Kind switch
     {
         HostingKind.GitLab => $"{Pages}/merge_requests/new?merge_request%5Bsource_branch%5D={Uri.EscapeDataString(source)}" +
                               $"&merge_request%5Btarget_branch%5D={Uri.EscapeDataString(target)}",

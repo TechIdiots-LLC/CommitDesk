@@ -9,7 +9,7 @@ namespace CommitDesk.Core.Tests;
 
 public class ChangeRequestTests
 {
-    sealed class FakeHandler(Func<HttpRequestMessage, string> respond) : HttpMessageHandler
+    internal sealed class FakeHandler(Func<HttpRequestMessage, string> respond) : HttpMessageHandler
     {
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken ct)
             => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
@@ -272,5 +272,61 @@ public class ChangeRequestForBranchTests
             HostedRemote.Parse("https://github.com/o/p.git")!.ChangeRequestsForBranchLink("feature/terrain-3d"));
         Assert.Equal("https://gitlab.com/g/p/-/merge_requests?state=opened&source_branch=feature%2Fx",
             HostedRemote.Parse("https://gitlab.com/g/p.git")!.ChangeRequestsForBranchLink("feature/x"));
+    }
+
+    static NewChangeRequest FromFork(string? fork) => new()
+    {
+        SourceBranch = "feature/x", SourceProjectPath = fork, TargetBranch = "main", Title = "Title",
+    };
+
+    [Theory]
+    [InlineData(null, "\"head\":\"feature/x\"")]
+    [InlineData("me/p", "\"head\":\"me:feature/x\"")]
+    public async Task GitHubPullFromAForkNamesItsOwner(string? fork, string head)
+    {
+        var requests = new List<(string Url, string Body)>();
+        var gh = new GitHubClient(new HttpClient(new ChangeRequestTests.FakeHandler(r =>
+        {
+            requests.Add((r.RequestUri!.ToString(), r.Content?.ReadAsStringAsync().Result ?? ""));
+            return """{ "number": 5, "title": "Title", "html_url": "https://github.com/o/p/pull/5", "draft": false }""";
+        })));
+        gh.Configure("token");
+
+        var cr = await gh.CreateChangeRequestAsync("o/p", FromFork(fork));
+
+        var post = Assert.Single(requests);
+        Assert.EndsWith("/repos/o/p/pulls", post.Url);   // made in the project either way
+        Assert.Contains(head, post.Body);
+        Assert.Equal("https://github.com/o/p/pull/5", cr.WebUrl);
+    }
+
+    [Fact]
+    public async Task GitLabMergeRequestFromAForkIsMadeInTheFork()
+    {
+        var requests = new List<(string Method, string Path, string Body)>();
+        var gl = new GitLabClient(new HttpClient(new ChangeRequestTests.FakeHandler(r =>
+        {
+            requests.Add((r.Method.Method, r.RequestUri!.AbsolutePath, r.Content?.ReadAsStringAsync().Result ?? ""));
+            return r.Method == HttpMethod.Get
+                ? """{ "id": 42, "name": "p", "path_with_namespace": "g/p", "web_url": "https://gitlab.example.com/g/p" }"""
+                : """{ "iid": 9, "title": "Title", "web_url": "https://gitlab.example.com/g/p/-/merge_requests/9", "draft": false }""";
+        })));
+        gl.Configure("https://gitlab.example.com", "token");
+
+        var cr = await gl.CreateChangeRequestAsync("g/p", FromFork("me/p"));
+
+        Assert.Equal(2, requests.Count);
+        Assert.Equal(("GET", "/api/v4/projects/g%2Fp"), (requests[0].Method, requests[0].Path));
+        Assert.Equal(("POST", "/api/v4/projects/me%2Fp/merge_requests"), (requests[1].Method, requests[1].Path));
+        Assert.Contains("\"target_project_id\":42", requests[1].Body);
+        Assert.Contains("\"source_branch\":\"feature/x\"", requests[1].Body);
+        Assert.Equal("!9", cr.Reference);
+
+        // From the project's own branch: one call, in the project, no target project
+        requests.Clear();
+        await gl.CreateChangeRequestAsync("g/p", FromFork(null));
+        var own = Assert.Single(requests);
+        Assert.Equal("/api/v4/projects/g%2Fp/merge_requests", own.Path);
+        Assert.DoesNotContain("target_project_id", own.Body);
     }
 }

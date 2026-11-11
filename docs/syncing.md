@@ -33,6 +33,8 @@ going where they came from:
 - any branch you sent somewhere else with **Publish branch to…**, which is remembered for that branch.
 
 Update from *default branch*, the GitLab/GitHub links and new merge/pull requests still use the project, not your fork.
+**Branch › Create pull request** (merge request on GitLab) on a branch in your fork makes the request from your fork
+into the project, and the project's branch of the same name can be chosen as its target.
 The settings are git's own (`remote.pushDefault` and `branch.<name>.pushRemote`), so `git push` in a terminal goes to
 the same place.
 

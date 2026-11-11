@@ -246,7 +246,8 @@ public sealed class GitHubClient(HttpClient http) : IHostingService
         var pull = await PostAsync<Pull>($"repos/{Repo(projectPath)}/pulls", new
         {
             title = request.Title,
-            head = request.SourceBranch,
+            // A branch in a fork is named "owner:branch"
+            head = request.SourceProjectPath is { } fork ? $"{fork.Split('/')[0]}:{request.SourceBranch}" : request.SourceBranch,
             @base = request.TargetBranch,
             body = request.Description,
             draft = request.Draft,

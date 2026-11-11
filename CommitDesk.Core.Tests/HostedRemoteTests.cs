@@ -99,6 +99,9 @@ public class HostedRemoteTests
         Assert.Equal("https://github.com/owner/repo/issues/new", r.NewIssueLink);
         Assert.Equal("https://github.com/owner/repo/pulls", r.ChangeRequestsLink);
         Assert.Equal("https://github.com/owner/repo/compare/main...fix/x?expand=1", r.NewChangeRequestLink("fix/x", "main"));
+        Assert.Equal("https://github.com/owner/repo/compare/main...me:fix/x?expand=1", r.NewChangeRequestLink("fix/x", "main", "me/repo"));
+        Assert.Equal("https://gitlab.example.com/me/p/-/merge_requests/new?merge_request%5Bsource_branch%5D=fix%2Fx",
+            HostedRemote.Parse("https://gitlab.example.com/g/p.git")!.NewChangeRequestLink("fix/x", "main", "me/p"));
         Assert.Equal("https://github.com/owner/repo/actions?query=branch%3Afix%2Fx", r.CiLink("fix/x"));
     }
 

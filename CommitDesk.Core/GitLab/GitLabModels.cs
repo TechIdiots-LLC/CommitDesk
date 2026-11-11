@@ -64,6 +64,8 @@ public sealed class GitLabBranch
 
 public sealed class CreateMergeRequestRequest
 {
+    /// <summary>The project to merge into, when the request is made in a fork; null for the same project.</summary>
+    public long? TargetProjectId { get; set; }
     public string SourceBranch { get; set; } = "";
     public string TargetBranch { get; set; } = "";
     public string Title { get; set; } = "";

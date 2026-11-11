@@ -206,8 +206,11 @@ public sealed class GitLabClient(HttpClient http) : IHostingService
         if (request.Draft && !title.StartsWith("Draft:", StringComparison.OrdinalIgnoreCase)) title = "Draft: " + title;
         long? assignee = request.AssignToMe ? (await GetCurrentUserAsync(ct)).Id : null;
 
-        var mr = await CreateMergeRequestAsync(projectPath, new CreateMergeRequestRequest
+        // From a fork, GitLab makes the request in the fork, naming the project to merge into by its id
+        long? targetProject = request.SourceProjectPath is null ? null : (await GetProjectAsync(projectPath, ct)).Id;
+        var mr = await CreateMergeRequestAsync(request.SourceProjectPath ?? projectPath, new CreateMergeRequestRequest
         {
+            TargetProjectId = targetProject,
             SourceBranch = request.SourceBranch,
             TargetBranch = request.TargetBranch,
             Title = title,
