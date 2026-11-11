@@ -205,6 +205,7 @@ public partial class MainPage
         groups.Add(("Help", [
             new("Documentation", Run: () => Launcher.Default.OpenAsync(new Uri(AppUpdater.DocumentationUrl))),
             .. AppUpdater.IsSupported ? new MenuAction[] { new("Check for updates…", Run: () => _updater.CheckAsync(interactive: true)) } : [],
+            .. AppUpdater.CanShowDonate ? new MenuAction[] { new("Donate", Run: () => Launcher.Default.OpenAsync(new Uri(AppUpdater.DonateUrl))) } : [],
             new("Git command log", vm.ShowCommandLogCommand), new("Third-party notices", vm.ShowNoticesCommand),
             new("About CommitDesk", Run: ShowAboutAsync)]));
 

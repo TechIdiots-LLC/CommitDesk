@@ -151,6 +151,8 @@
                 <MenuFlyoutItem.KeyboardAccelerators><KeyboardAccelerator Key="F1" /></MenuFlyoutItem.KeyboardAccelerators>
             </MenuFlyoutItem>
             <MenuFlyoutItem Text="Check for updates…" Clicked="OnCheckForUpdatesClicked" />
+            <!-- Desktop only (the menu bar isn't shown on phones); the ⋮ menu hides it in the store builds -->
+            <MenuFlyoutItem Text="Donate" Clicked="OnDonateClicked" />
             <MenuFlyoutSeparator />
             <MenuFlyoutItem Text="Git command log" Command="{Binding ShowCommandLogCommand}" />
             <MenuFlyoutItem Text="Third-party notices" Command="{Binding ShowNoticesCommand}" />

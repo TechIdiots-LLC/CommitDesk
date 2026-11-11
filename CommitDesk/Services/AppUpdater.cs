@@ -67,6 +67,17 @@ public sealed class AppUpdater(DialogService dialogs)
     public static bool IsSupported => OperatingSystem.IsWindows() || OperatingSystem.IsMacCatalyst() || OperatingSystem.IsAndroid();
 #endif
 
+    /// <summary>Help › Donate.</summary>
+    public const string DonateUrl = "https://techidiots.net/donate";
+
+#if PLAY_STORE
+    /// <summary>Google Play doesn't allow linking to payments outside Play billing, so its build has no Donate.</summary>
+    public static bool CanShowDonate => false;
+#else
+    /// <summary>Not on iOS either: the App Store doesn't allow donation links outside in-app purchase.</summary>
+    public static bool CanShowDonate => !OperatingSystem.IsIOS();
+#endif
+
     /// <summary>The release file this copy updates from, or null when it can only be sent to the release page.</summary>
     static string? PlatformAsset
     {

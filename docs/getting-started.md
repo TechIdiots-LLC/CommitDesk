@@ -71,3 +71,8 @@ The app checks for a new version when it starts and from **Help › Check for up
 
 Turn the startup check off, or opt in to pre-releases (versions such as `0.3.0-rc.1`), in
 [Options › Updates](options.md#updates).
+
+## Supporting CommitDesk
+
+**Help › Donate** opens [techidiots.net/donate](https://techidiots.net/donate). It isn't in the Google Play or iOS
+builds, because those stores don't allow links to payments outside their own billing.
