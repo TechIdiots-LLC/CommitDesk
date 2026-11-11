@@ -39,6 +39,7 @@ link to merge request** (or pull request), View branch on GitLab/GitHub, Create 
 | **New branch…** (Ctrl+Shift+N) | Creates a branch from the current commit and switches to it. Also available as **New branch** in the branch list. Spaces and characters git doesn't allow are replaced. |
 | **Rename…** (Ctrl+Shift+R) | Renames the current branch. |
 | **Delete…** (Ctrl+Shift+D) | Pick a local branch to delete. If it's published, you can delete just the local branch or the server's copy as well. |
+| **Publish branch to…** | Publish the current branch to a remote you choose, such as your fork, and keep pushing it there. See [Publishing to your fork](syncing.md#publishing-to-your-fork). |
 | **Discard all changes…** / **Stash all changes** / **Restore stashed changes…** | See [Undoing and setting aside changes](making-changes.md#undoing-and-setting-aside-changes). |
 | **Update from *default branch*** (Ctrl+Shift+U) | Fetches, then merges the server's default branch (for example `origin/main`) into the current branch. |
 | **Compare to branch on *GitLab/GitHub*** (Ctrl+Shift+B) | Pick a branch, then see the comparison on the server. |

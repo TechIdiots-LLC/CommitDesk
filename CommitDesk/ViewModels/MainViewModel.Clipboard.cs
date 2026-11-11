@@ -35,9 +35,9 @@ public sealed partial class MainViewModel
     async Task CopyRemoteUrl()
     {
         if (Repo is null) return;
-        var url = await Repo.GetRemoteUrlAsync(RemoteName);
-        if (url is null) await _dialogs.AlertAsync("Copy remote URL", $"This repository has no '{RemoteName}' remote.");
-        else await CopyAsync(url, $"the {RemoteName} URL");
+        var url = await Repo.GetRemoteUrlAsync(BaseRemoteName);
+        if (url is null) await _dialogs.AlertAsync("Copy remote URL", $"This repository has no '{BaseRemoteName}' remote.");
+        else await CopyAsync(url, $"the {BaseRemoteName} URL");
     }
 
     // ── Branch ───────────────────────────────────────────────────────────────

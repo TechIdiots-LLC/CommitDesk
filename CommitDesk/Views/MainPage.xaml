@@ -105,6 +105,7 @@
             <MenuFlyoutItem Text="Delete…" Command="{Binding DeleteBranchCommand}">
                 <MenuFlyoutItem.KeyboardAccelerators><KeyboardAccelerator Modifiers="Ctrl,Shift" Key="D" /></MenuFlyoutItem.KeyboardAccelerators>
             </MenuFlyoutItem>
+            <MenuFlyoutItem Text="Publish branch to…" Command="{Binding PublishBranchToCommand}" />
             <MenuFlyoutSeparator />
             <MenuFlyoutItem Text="Discard all changes…" Command="{Binding DiscardAllChangesCommand}" />
             <MenuFlyoutItem Text="Stash all changes" Command="{Binding StashAllChangesCommand}">
@@ -201,6 +202,7 @@
                         <MenuFlyoutItem Text="Copy link to branch" Command="{Binding CopyBranchLinkCommand}" />
                         <MenuFlyoutItem Text="{Binding CopyChangeRequestLinkText}" Command="{Binding CopyChangeRequestLinkCommand}" />
                         <MenuFlyoutSeparator />
+                        <MenuFlyoutItem Text="Publish branch to…" Command="{Binding PublishBranchToCommand}" />
                         <MenuFlyoutItem Text="{Binding ViewBranchOnHostText}" Command="{Binding ViewBranchOnHostCommand}" />
                         <MenuFlyoutItem Text="{Binding CreateChangeRequestText}" Command="{Binding CreateChangeRequestCommand}" />
                         <MenuFlyoutSeparator />

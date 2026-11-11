@@ -73,7 +73,8 @@ up when you switch back. **View › Refresh** (F5) refreshes right away.
 ![Repository settings](images/repository-settings.png)
 
 - **Remote**: the URL of the `origin` remote, where Push, Pull and Fetch go. Changing it also changes which GitLab or
-  GitHub project the links and merge/pull requests are for.
+  GitHub project the links and merge/pull requests are for. **Publish new branches to** picks a remote, usually your
+  fork, that new branches are published to instead (see [Publishing to your fork](syncing.md#publishing-to-your-fork)).
 - **Ignored files**: edit the repository's `.gitignore`, one pattern per line (for example `bin/` or `*.log`). Files
   git already tracks aren't affected. To ignore a single changed file, right-click it in the Changes tab instead.
 - **Git config**: the name and email recorded on your commits. **Use my global Git config** uses the ones set for

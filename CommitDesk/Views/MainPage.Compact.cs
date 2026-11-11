@@ -186,6 +186,7 @@ public partial class MainPage
             groups.Add(("Branch", [
                 new("Switch branch…", vm.ChooseBranchCommand), new("New branch…", vm.NewBranchCommand),
                 new("Rename…", vm.RenameBranchCommand), new("Delete…", vm.DeleteBranchCommand),
+                new("Publish branch to…", vm.PublishBranchToCommand),
                 new("Undo commit…", vm.UndoLastCommitCommand), new(vm.RedoCommitText, vm.RedoCommitCommand),
                 new("Discard all changes…", vm.DiscardAllChangesCommand), new("Stash all changes", vm.StashAllChangesCommand),
                 new("Restore stashed changes…", vm.RestoreStashCommand),

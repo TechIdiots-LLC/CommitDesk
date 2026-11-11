@@ -144,8 +144,8 @@ public sealed partial class MainViewModel
     {
         if (Status is not { Branch: { } branch } || !IsPublished) return;
         if (!await _dialogs.ConfirmAsync("Force push?",
-                $"This replaces {branch} on {RemoteName} with your local branch. " +
-                $"Any commits on {RemoteName} that aren't on your branch will be lost.", "Force push"))
+                $"This replaces {branch} on {PushRemote} with your local branch. " +
+                $"Any commits on {PushRemote} that aren't on your branch will be lost.", "Force push"))
             return;
         await PushAsync(force: true);
     }
@@ -157,6 +157,7 @@ public sealed partial class MainViewModel
         if (Repo is null || !await RequireBranchAsync()) return;
         var status = Status!;
         var publish = NeedsPublishing;   // counts against another branch don't matter: it's pushed under its own name
+        var remote = PushRemote;
         if (!force && !publish && status.Behind > 0 && status.Ahead > 0)
         {
             var choice = await _dialogs.ChooseAsync(
@@ -167,11 +168,11 @@ public sealed partial class MainViewModel
             force = true;
         }
         var rejected = false;
-        await RunAsync(publish ? "Publishing branch…" : "Pushing…", async () =>
+        await RunAsync(publish ? (remote == BaseRemoteName ? "Publishing branch…" : $"Publishing branch to {remote}…") : "Pushing…", async () =>
         {
             try
             {
-                await Repo.PushAsync(RemoteName, status.Branch!, setUpstream: publish, force);
+                await Repo.PushAsync(remote, status.Branch!, setUpstream: publish, force);
                 _lastFetched = DateTimeOffset.Now;
             }
             catch (GitException ex) when (GitErrors.IsPushRejectedAsBehind(ex.Message))
@@ -183,7 +184,7 @@ public sealed partial class MainViewModel
         {
             // Fetch first, then the toolbar offers Pull with both counts (↓ ↑).
             if (await _dialogs.ConfirmAsync("Newer commits on remote",
-                    $"{status.Branch} can't be pushed because {RemoteName} has commits that aren't on your branch yet. " +
+                    $"{status.Branch} can't be pushed because {remote} has commits that aren't on your branch yet. " +
                     "Fetch them, then pull to combine them with your commits before pushing.", "Fetch"))
                 await Fetch();
             return;
@@ -279,7 +280,7 @@ public sealed partial class MainViewModel
     async Task RepositorySettings()
     {
         if (Repo is null) return;
-        var vm = new RepositorySettingsViewModel(Repo, RemoteName);
+        var vm = new RepositorySettingsViewModel(Repo, BaseRemoteName);
         await _dialogs.PushModalAsync(new RepositorySettingsPage(vm));
         if (!await vm.Result) return;
         // A changed .gitignore changes which files are listed; a changed remote may be on another server.

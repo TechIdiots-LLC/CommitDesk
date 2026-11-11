@@ -130,7 +130,7 @@ public sealed partial class MainViewModel
     /// <summary>Checks out an open merge/pull request's branch (from a fork: "pr/12" or "mr/12" tracking the fork).</summary>
     Task CheckoutChangeRequestAsync(OpenChangeRequest request)
         => SwitchToAsync(request.FromFork ? request.ForkBranchName : request.SourceBranch,
-            () => Repo!.CheckoutChangeRequestAsync(RemoteName, request, preferSsh: _settings.CloneWithSsh));
+            () => Repo!.CheckoutChangeRequestAsync(BaseRemoteName, request, preferSsh: _settings.CloneWithSsh));
 
     /// <summary>Switches branch, first asking whether uncommitted changes stay on the current branch or come along.</summary>
     async Task SwitchToAsync(string targetName, Func<Task> checkout)
@@ -287,9 +287,9 @@ public sealed partial class MainViewModel
         if (Repo is null) return Task.CompletedTask;
         return RunAsync($"Updating from {DefaultBranch}…", async () =>
         {
-            await Repo.FetchAsync(RemoteName);
+            await Repo.FetchAsync(BaseRemoteName);
             _lastFetched = DateTimeOffset.Now;
-            await Repo.MergeAsync($"{RemoteName}/{DefaultBranch}");
+            await Repo.MergeAsync($"{BaseRemoteName}/{DefaultBranch}");
         });
     }
 

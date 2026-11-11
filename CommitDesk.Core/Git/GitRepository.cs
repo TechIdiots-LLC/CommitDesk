@@ -584,6 +584,35 @@ public sealed partial class GitRepository(GitRunner git, string path)
         return r.Success ? r.StdOut.Trim() : null;
     }
 
+    /// <summary>
+    /// Where branches are pushed, from git's own settings: the remotes, remote.pushDefault (the repository's "publish
+    /// branches to") and branch.&lt;name&gt;.pushRemote (one branch's choice). One git call, as it is read on every refresh.
+    /// </summary>
+    public async Task<PushConfig> GetPushConfigAsync(string? branch)
+    {
+        if (UseLibGit2)
+            return await Lg2Async(r => new PushConfig(
+                r.Network.Remotes.Select(x => x.Name).ToList(),
+                r.Config.Get<string>("remote.pushDefault")?.Value,
+                branch is null ? null : r.Config.Get<string>($"branch.{branch}.pushRemote")?.Value));
+
+        // Keys come back with the section and name lower-cased, and the remote or branch name as written
+        var result = await Run(["config", "--get-regexp", @"^(remote\..+\.url|remote\.pushdefault|branch\..+\.pushremote)$"], throwOnError: false);
+        var remotes = new List<string>();
+        string? pushDefault = null, branchPushRemote = null;
+        foreach (var line in result.StdOut.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+        {
+            var space = line.IndexOf(' ');
+            if (space < 0) continue;
+            var (key, value) = (line[..space], line[(space + 1)..]);
+            if (key == "remote.pushdefault") pushDefault = value;
+            else if (key.StartsWith("remote.", StringComparison.Ordinal) && key.EndsWith(".url", StringComparison.Ordinal))
+                remotes.Add(key["remote.".Length..^".url".Length]);
+            else if (branch is not null && key == $"branch.{branch}.pushremote") branchPushRemote = value;
+        }
+        return new PushConfig(remotes.Distinct().ToList(), pushDefault, branchPushRemote);
+    }
+
     public async Task<IReadOnlyList<string>> GetRemotesAsync()
         => UseLibGit2 ? await Lg2Async(r => (IReadOnlyList<string>)r.Network.Remotes.Select(x => x.Name).ToList()) : (await Run("remote")).StdOut.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 

@@ -22,6 +22,28 @@ public class HostedRemoteTests
         Assert.True(r.IsOn("https://git.example.edu"));
     }
 
+    [Theory]
+    [InlineData("https://github.com/maplibre/maplibre-native.git", "https://github.com/acalcutt/maplibre-native.git")]
+    [InlineData("git@github.com:maplibre/maplibre-native.git", "git@github.com:acalcutt/maplibre-native.git")]
+    [InlineData("https://github.com/maplibre/maplibre-native", "https://github.com/acalcutt/maplibre-native")]
+    [InlineData("https://git.example.edu/group/sub/Project.git", "https://git.example.edu/acalcutt/Project.git")]
+    public void ForkUrlKeepsTheCloneForm(string parent, string fork)
+    {
+        var r = HostedRemote.Parse(parent, Known)!;
+        Assert.Equal(fork, r.ForkUrl(parent, "acalcutt"));
+    }
+
+    [Fact]
+    public void OwnerNameAndForkLink()
+    {
+        var gh = HostedRemote.Parse("https://github.com/maplibre/maplibre-native.git")!;
+        Assert.Equal(("maplibre", "maplibre-native"), (gh.Owner, gh.Name));
+        Assert.Equal("https://github.com/maplibre/maplibre-native/fork", gh.ForkLink);
+        var gl = HostedRemote.Parse("https://git.example.edu/group/sub/Project.git", Known)!;
+        Assert.Equal(("group", "Project"), (gl.Owner, gl.Name));
+        Assert.Equal("https://git.example.edu/group/sub/Project/-/forks/new", gl.ForkLink);
+    }
+
     [Fact]
     public void UnconfiguredHostWithoutHintIsUnknown()
     {

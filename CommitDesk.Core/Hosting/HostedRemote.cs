@@ -95,6 +95,30 @@ public sealed record HostedRemote(HostingKind Kind, string Host, string ProjectP
 
     bool Known => Kind != HostingKind.Unknown;
 
+    /// <summary>The project's own name: "repo" in "owner/repo" (or "group/subgroup/repo").</summary>
+    public string Name => ProjectPath[(ProjectPath.LastIndexOf('/') + 1)..];
+
+    /// <summary>The user or group the project is under: "owner" in "owner/repo".</summary>
+    public string Owner => ProjectPath.Contains('/') ? ProjectPath[..ProjectPath.IndexOf('/')] : ProjectPath;
+
+    /// <summary>
+    /// <paramref name="owner"/>'s fork of this project ("owner/name"), cloned the same way as <paramref name="remoteUrl"/>
+    /// (https or ssh, same server). Null when the URL doesn't contain the project path.
+    /// </summary>
+    public string? ForkUrl(string remoteUrl, string owner)
+    {
+        var i = remoteUrl.LastIndexOf(ProjectPath, StringComparison.OrdinalIgnoreCase);
+        return i < 0 ? null : remoteUrl[..i] + $"{owner}/{Name}" + remoteUrl[(i + ProjectPath.Length)..];
+    }
+
+    /// <summary>The host's page for forking the project.</summary>
+    public string? ForkLink => Kind switch
+    {
+        HostingKind.GitLab => $"{Pages}/forks/new",
+        HostingKind.GitHub => $"{WebUrl}/fork",
+        _ => null,
+    };
+
     /// <summary>"/-" separates GitLab's project path from its pages; GitHub has no separator.</summary>
     string Pages => Kind == HostingKind.GitLab ? $"{WebUrl}/-" : WebUrl;
 

@@ -216,14 +216,37 @@ public sealed partial class MainViewModel : ObservableObject
         foreach (var p in HostTextProperties) OnPropertyChanged(p);
     }
 
+    /// <summary>The remote the current branch tracks: where Pull and Fetch go. origin when it tracks nothing.</summary>
     string RemoteName => Status?.Upstream is { } u && u.Contains('/') ? u[..u.IndexOf('/')] : "origin";
 
+    /// <summary>The current branch's push settings (git's remote.pushDefault and branch.&lt;name&gt;.pushRemote), read with the status.</summary>
+    PushConfig? _pushConfig;
+
     /// <summary>
-    /// The branch tracks the remote branch of its own name. One that tracks another (a branch made from origin/main often
-    /// tracks origin/main) counts as not published: its ahead count is against that other branch, and pushing doesn't
-    /// change it, so the push button would never clear. Publishing pushes it under its own name and tracks that.
+    /// The repository's "Publish branches to" remote (git's remote.pushDefault), usually your fork of the project, when
+    /// it names a remote that exists.
     /// </summary>
-    bool IsPublished => Status is { Branch: { } b, Upstream: { } u } && u.Contains('/') && u[(u.IndexOf('/') + 1)..] == b;
+    string? ForkRemote => _pushConfig?.Fork;
+
+    /// <summary>
+    /// The project's own remote, which the GitLab/GitHub links, merge/pull requests and Update from default branch use:
+    /// the tracked remote, except on a branch that lives in <see cref="ForkRemote"/>, where it's the project that was
+    /// forked (upstream, else origin).
+    /// </summary>
+    string BaseRemoteName => _pushConfig?.BaseRemote(RemoteName) ?? RemoteName;
+
+    /// <summary>Where the current branch is published and pushed (see <see cref="PushConfig.PushRemote"/>).</summary>
+    string PushRemote => _pushConfig is { } c && Status?.Branch is { } branch
+        ? c.PushRemote(branch, RemoteName, Status.Upstream is not null, DefaultBranch)
+        : RemoteName;
+
+    /// <summary>
+    /// The branch tracks the branch of its own name on <see cref="PushRemote"/>. One that tracks another (a branch made
+    /// from origin/main often tracks origin/main) counts as not published: its ahead count is against that other branch,
+    /// and pushing doesn't change it, so the push button would never clear. Publishing pushes it under its own name and
+    /// tracks that. So does one that tracks the project's branch while it's meant for your fork.
+    /// </summary>
+    bool IsPublished => Status is { Branch: { } b, Upstream: { } u } && u == $"{PushRemote}/{b}";
 
     bool NeedsPublishing => Status is { Branch: not null } && !IsPublished;
 
@@ -238,6 +261,8 @@ public sealed partial class MainViewModel : ObservableObject
     public string SyncSubtitle => Status switch
     {
         null => "",
+        // Named when it's going somewhere other than the project itself (your fork)
+        _ when NeedsPublishing && PushRemote != BaseRemoteName => $"To {PushRemote}" + (Status.Upstream is { } u ? $", now tracks {u}" : ""),
         { Upstream: null } when NeedsPublishing => $"Publish this branch to {ProviderName}",
         { Upstream: { } u } when NeedsPublishing => $"Now tracks {u}",
         { Behind: > 0 } s => s.Ahead > 0 ? $"↓{s.Behind}  ↑{s.Ahead}" : $"↓{s.Behind}",
@@ -339,12 +364,14 @@ public sealed partial class MainViewModel : ObservableObject
         if (Repo is null) return;
         var repo = Repo;
         // May probe the server to learn whether it runs GitLab or GitHub.
-        var remote = await _hosting.ResolveAsync(await repo.GetRemoteUrlAsync(RemoteName));
-        var defaultBranch = (await repo.GetRemoteDefaultBranchAsync(RemoteName))?.Split('/', 2)[^1];
+        var remote = await _hosting.ResolveAsync(await repo.GetRemoteUrlAsync(BaseRemoteName));
+        var defaultBranch = (await repo.GetRemoteDefaultBranchAsync(BaseRemoteName))?.Split('/', 2)[^1];
         if (repo != Repo) return;   // switched repositories while probing
         Remote = remote;
         _defaultBranch = defaultBranch;
         OnPropertyChanged(nameof(UpdateFromDefaultText));
+        OnPropertyChanged(nameof(SyncTitle));     // the default branch doesn't publish to a fork
+        OnPropertyChanged(nameof(SyncSubtitle));
         await LoadHostingInfoAsync();
     }
 
@@ -415,6 +442,7 @@ public sealed partial class MainViewModel : ObservableObject
                 }
                 var status = await repo.GetStatusAsync();
                 var op = await repo.GetOperationAsync();
+                var push = await repo.GetPushConfigAsync(status.Branch);
                 if (repo != Repo)
                 {
                     // Switched repositories meanwhile: discard this result and refresh the new one.
@@ -427,6 +455,7 @@ public sealed partial class MainViewModel : ObservableObject
                 bool branchChanged = Status?.Branch != status.Branch;
                 // A push or fetch moves the upstream without moving HEAD, which changes which commits are unpushed.
                 bool upstreamChanged = Status?.Upstream != status.Upstream || Status?.Ahead != status.Ahead;
+                _pushConfig = push;   // before Status, whose change re-reads the toolbar text that depends on it
                 Status = status;
                 Operation = op;
                 await UpdateChangedFilesAsync(status.Files);

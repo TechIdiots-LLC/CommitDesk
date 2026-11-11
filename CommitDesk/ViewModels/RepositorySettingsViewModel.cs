@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommitDesk.Core.Git;
@@ -5,7 +6,7 @@ using CommitDesk.Core.Git;
 namespace CommitDesk.ViewModels;
 
 /// <summary>
-/// Repository › Repository settings: the remote's URL, the .gitignore, and whether commits use
+/// Repository › Repository settings: the remote's URL, where new branches are published, the .gitignore, and whether commits use
 /// the global git name and email or ones set for this repository only. Completes with true when something was saved.
 /// </summary>
 public sealed partial class RepositorySettingsViewModel(GitRepository repo, string remoteName) : ModalViewModel<bool>
@@ -33,6 +34,15 @@ public sealed partial class RepositorySettingsViewModel(GitRepository repo, stri
     // ── Values ───────────────────────────────────────────────────────────────
 
     [ObservableProperty] private string _remoteUrl = "";
+
+    /// <summary>The first entry of <see cref="PublishTargets"/>: no remote.pushDefault.</summary>
+    public const string PublishWhereFrom = "Where each branch came from";
+
+    /// <summary>"Publish new branches to": <see cref="PublishWhereFrom"/>, then the remotes (your fork, usually).</summary>
+    public ObservableCollection<string> PublishTargets { get; } = [PublishWhereFrom];
+
+    [ObservableProperty] private string _publishTarget = PublishWhereFrom;
+    string _loadedPublishTarget = PublishWhereFrom;
     [ObservableProperty] private string _gitIgnore = "";
 
     [ObservableProperty]
@@ -63,6 +73,11 @@ public sealed partial class RepositorySettingsViewModel(GitRepository repo, stri
         {
             _loadedRemote = await repo.GetRemoteUrlAsync(RemoteName);
             RemoteUrl = _loadedRemote ?? "";
+            var remotes = await repo.GetRemotesAsync();
+            foreach (var r in remotes) PublishTargets.Add(r);
+            var pushDefault = await repo.GetLocalConfigAsync("remote.pushDefault");
+            _loadedPublishTarget = pushDefault is not null && remotes.Contains(pushDefault) ? pushDefault : PublishWhereFrom;
+            PublishTarget = _loadedPublishTarget;
             _loadedIgnore = (await repo.ReadGitIgnoreAsync()).Replace("\r\n", "\n");
             GitIgnore = _loadedIgnore;
             _localName = await repo.GetLocalConfigAsync("user.name");
@@ -97,6 +112,9 @@ public sealed partial class RepositorySettingsViewModel(GitRepository repo, stri
                 await repo.SetRemoteUrlAsync(RemoteName, url);
                 RemoteChanged = true;
             }
+
+            if (PublishTarget != _loadedPublishTarget)
+                await repo.SetLocalConfigAsync("remote.pushDefault", PublishTarget == PublishWhereFrom ? null : PublishTarget);
 
             if (GitIgnore.Replace("\r\n", "\n").Replace('\r', '\n') != _loadedIgnore)
                 await repo.WriteGitIgnoreAsync(GitIgnore);

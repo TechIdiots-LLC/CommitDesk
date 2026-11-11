@@ -12,6 +12,30 @@ The third toolbar button sends and receives changes. Its label shows what it wil
 The same actions are in the **Repository** menu: **Push** (Ctrl+P), **Pull** (Ctrl+Shift+P) and **Fetch**
 (Ctrl+Shift+T).
 
+## Publishing to your fork
+
+When `origin` is the project itself (for example a clone of maplibre/maplibre-native) but you want your branches in
+your own fork, choose where they're published:
+
+- **Branch › Publish branch to…** (also on the branch button's right-click menu) lists the repository's remotes. If you
+  have a GitLab or GitHub account for the server and no remote points at your fork yet, **Your fork: *you/project***
+  is listed first. Picking it adds the fork as a remote named after your login. If the fork doesn't exist yet, you're
+  offered the server's fork page. The branch is pushed there and tracks it from then on.
+- When the fork is added you're asked whether to **publish new branches to it by default**. You can change this later in
+  [Repository settings](repositories.md#repository-settings) › **Publish new branches to**.
+
+With your fork as the default, a branch you make, including one checked out from the project's own branch (such as
+`origin/feature/x`), shows **Publish branch** with *To you* underneath, and publishing sends it to your fork. These keep
+going where they came from:
+
+- the default branch (`main`), which still pulls from and pushes to the project;
+- branches checked out from someone else's remote, such as a merge/pull request from another fork;
+- any branch you sent somewhere else with **Publish branch to…**, which is remembered for that branch.
+
+Update from *default branch*, the GitLab/GitHub links and new merge/pull requests still use the project, not your fork.
+The settings are git's own (`remote.pushDefault` and `branch.<name>.pushRemote`), so `git push` in a terminal goes to
+the same place.
+
 ## Newer commits on the server
 
 If someone else pushed to the branch since you last fetched, the server refuses your push. The app says so and offers

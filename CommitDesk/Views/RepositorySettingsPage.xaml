@@ -52,6 +52,11 @@
                 <Entry Text="{Binding RemoteUrl}" Placeholder="https://gitlab.example.com/group/project.git" Keyboard="Url" />
                 <Label Style="{StaticResource SecondaryText}"
                        Text="Where Push, Pull and Fetch go, and which project the GitLab or GitHub links and merge/pull requests are for." />
+
+                <Label Text="Publish new branches to" FontAttributes="Bold" Margin="0,12,0,0" />
+                <Picker ItemsSource="{Binding PublishTargets}" SelectedItem="{Binding PublishTarget}" />
+                <Label Style="{StaticResource SecondaryText}"
+                       Text="Choose your fork to publish branches there instead of to the project, including ones made from the project's branches. The default branch, and branches from someone else's remote, still go where they came from. Branch › Publish branch to… chooses for a single branch. (Saved as git's remote.pushDefault.)" />
             </VerticalStackLayout>
 
             <!-- Ignored files -->

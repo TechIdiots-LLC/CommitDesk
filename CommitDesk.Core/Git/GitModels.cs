@@ -39,6 +39,40 @@ public sealed class RepositoryStatus
     public bool IsUnborn => HeadSha is null;
 }
 
+/// <summary>
+/// Git's push settings for a branch: the repository's remotes, remote.pushDefault and the branch's
+/// branch.&lt;name&gt;.pushRemote (null when unset).
+/// </summary>
+public sealed record PushConfig(IReadOnlyList<string> Remotes, string? PushDefault, string? BranchPushRemote)
+{
+    /// <summary>The repository's "Publish branches to" remote (usually your fork), when it names a remote that exists.</summary>
+    public string? Fork => PushDefault is { } p && Remotes.Contains(p) ? p : null;
+
+    /// <summary>With a fork set, the other remote that's the forked project: upstream, else origin.</summary>
+    public string? Parent => Fork is { } fork ? new[] { "upstream", "origin" }.FirstOrDefault(r => r != fork && Remotes.Contains(r)) : null;
+
+    /// <summary>
+    /// The project's own remote, for links, merge/pull requests and updating from the default branch: the tracked
+    /// remote, except on a branch that lives in the fork, where it's the forked project.
+    /// </summary>
+    public string BaseRemote(string trackedRemote) => Fork is { } fork && trackedRemote == fork ? Parent ?? trackedRemote : trackedRemote;
+
+    /// <summary>
+    /// Where a branch is published and pushed: its own choice (branch.&lt;name&gt;.pushRemote), else the fork for a branch
+    /// that would otherwise go to the project (not the default branch, and not one tracking someone else's remote, such
+    /// as a checked-out request from another fork), else the remote it tracks.
+    /// </summary>
+    /// <param name="trackedRemote">The remote of the branch's upstream; origin when it has none.</param>
+    /// <param name="hasUpstream">Whether the branch tracks a remote branch at all.</param>
+    public string PushRemote(string branch, string trackedRemote, bool hasUpstream, string defaultBranch)
+    {
+        if (BranchPushRemote is { } own && Remotes.Contains(own)) return own;
+        if (Fork is { } fork && branch != defaultBranch && (!hasUpstream || trackedRemote == fork || trackedRemote == Parent))
+            return fork;
+        return trackedRemote;
+    }
+}
+
 public sealed record BranchInfo(
     string FullName,
     string Name,
